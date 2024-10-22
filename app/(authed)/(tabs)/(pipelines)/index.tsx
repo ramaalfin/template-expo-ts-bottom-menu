@@ -1,6 +1,5 @@
 import { Href, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
@@ -16,7 +15,7 @@ export default function PipelineScreen() {
   const navigation = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
       <Topbar titleBar="Aktivitas" />
       {/* header */}
@@ -187,7 +186,7 @@ export default function PipelineScreen() {
           }}
         />
       </TouchableOpacity>
-    </SafeAreaView >
+    </View >
   );
 }
 

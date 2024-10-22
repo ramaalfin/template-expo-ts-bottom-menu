@@ -1,5 +1,4 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
     widthPercentageToDP as wp,
@@ -14,12 +13,12 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 // components
 import Topbar from "~/components/TopBar";
 
-export default function AddPipeline() {
+export default function DetailPipeline() {
     const navigation = useRouter();
 
     return (
         <>
-            <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+            <View style={{ flex: 1, backgroundColor: "#F48120" }}>
                 {/* Header */}
                 <Topbar titleBar="Detail Pipeline" />
                 {/* header */}
@@ -145,7 +144,7 @@ export default function AddPipeline() {
                         </View>
                     </View>
                 </ScrollView>
-            </SafeAreaView >
+            </View >
         </>
     )
 }

@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import {
   widthPercentageToDP as wp,
@@ -39,7 +37,7 @@ export default function ActivityScreen() {
 
   return (
 
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
       <Topbar titleBar="Aktivitas" />
       {/* header */}
@@ -65,7 +63,7 @@ export default function ActivityScreen() {
           />
         </TouchableOpacity>
       </View>
-    </SafeAreaView >
+    </View >
   );
 }
 

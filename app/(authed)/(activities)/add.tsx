@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -121,7 +120,7 @@ export default function AddActivity() {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+        <View style={{ flex: 1, backgroundColor: "#F48120" }}>
             {/* Header */}
             <Topbar titleBar="Tambah Aktivitas" />
             {/* header */}
@@ -420,7 +419,7 @@ export default function AddActivity() {
                     </View>
                 </ScrollView>
             </View>
-        </SafeAreaView >
+        </View >
     )
 }
 

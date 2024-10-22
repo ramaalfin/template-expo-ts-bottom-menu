@@ -1,16 +1,15 @@
 import "../global.css"
 
-import { StatusBar } from "expo-status-bar";
 import { Slot } from "expo-router";
-
 import { Theme, ThemeProvider } from '@react-navigation/native';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SplashScreen } from 'expo-router';
 import * as React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { NAV_THEME } from "~/lib/constants";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const LIGHT_THEME: Theme = {
   dark: false,
@@ -49,14 +48,13 @@ export default function Root() {
     Inter_700Bold,
   });
 
-  const { colorScheme, setColorScheme, isDarkColorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
       const theme = await AsyncStorage.getItem('theme');
       if (Platform.OS === 'web') {
-        // Adds the background color to the html element to prevent white background on overscroll.
         document.documentElement.classList.add('bg-background');
       }
       if (!theme) {
@@ -87,11 +85,13 @@ export default function Root() {
 
   return (
     <>
-      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <StatusBar style="dark" />
-        {/* AuthProvider */}
-        <Slot />
-        {/* AuthProvider */}
+      <ThemeProvider value={LIGHT_THEME}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <StatusBar backgroundColor="transparent" barStyle="dark-content" />
+          {/* AuthProvider */}
+          <Slot />
+          {/* AuthProvider */}
+        </SafeAreaView>
       </ThemeProvider>
     </>
   );

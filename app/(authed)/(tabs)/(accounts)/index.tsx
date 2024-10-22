@@ -1,5 +1,4 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   widthPercentageToDP as wp,
@@ -23,7 +22,7 @@ export default function AccountScreen() {
   const navigation = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       <Topbar titleBar="Akun Saya" />
 
       <View style={styles.container}>
@@ -139,7 +138,7 @@ export default function AccountScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

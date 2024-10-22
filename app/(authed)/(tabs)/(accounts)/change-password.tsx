@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -28,7 +27,7 @@ export default function ChangePasswordScreen() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+        <View style={{ flex: 1, backgroundColor: "#F48120" }}>
             {/* Header */}
             <Topbar titleBar="Ganti Password" />
             {/* header */}
@@ -120,7 +119,7 @@ export default function ChangePasswordScreen() {
                     <Text style={styles.btnText}>Simpan</Text>
                 </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

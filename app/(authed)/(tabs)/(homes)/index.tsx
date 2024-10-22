@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -26,7 +25,7 @@ export default function HomeScreen() {
   const navigation = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
+    <View style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
       {/* topbar */}
       <View style={styles.topBar}>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -451,7 +450,7 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
       {/* content */}
-    </SafeAreaView>
+    </View>
   );
 }
 

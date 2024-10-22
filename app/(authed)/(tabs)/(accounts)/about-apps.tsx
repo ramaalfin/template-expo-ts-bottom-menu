@@ -1,5 +1,4 @@
 import { Image, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   widthPercentageToDP as wp,
@@ -11,7 +10,7 @@ import Topbar from "~/components/TopBar";
 
 export default function AboutAppsScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
       <Topbar titleBar="Tentang Aplikasi" />
       {/* header */}
@@ -33,7 +32,7 @@ export default function AboutAppsScreen() {
 
         <Text style={styles.description}>Aplikasi yang berfungsi untuk … </Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

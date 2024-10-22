@@ -1,7 +1,5 @@
 import { useState } from "react";
-
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
     widthPercentageToDP as wp,
@@ -20,7 +18,7 @@ export default function NotificationScreen() {
     const [value, setValue] = useState('semua');
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+        <View style={{ flex: 1, backgroundColor: "#F48120" }}>
             {/* Header */}
             <Topbar titleBar="Notifikasi" />
             {/* header */}
@@ -280,7 +278,7 @@ export default function NotificationScreen() {
                     </TabsContent>
                 </Tabs>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

@@ -1,5 +1,3 @@
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -30,7 +28,7 @@ const INVOICES = [
 
 export default function PipelineRealisasiScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
       <Topbar titleBar="Pipiline VS Realisasi" />
       {/* header */}
@@ -70,7 +68,7 @@ export default function PipelineRealisasiScreen() {
           </Table>
         </ScrollView>
       </View>
-    </SafeAreaView >
+    </View >
   );
 }
 

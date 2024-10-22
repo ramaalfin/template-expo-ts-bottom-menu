@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -116,7 +115,7 @@ export default function InputPipeline() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+        <View style={{ flex: 1, backgroundColor: "#F48120" }}>
             {/* Header */}
             <Topbar titleBar="Input Penempatan Dana" />
             {/* header */}
@@ -489,7 +488,7 @@ export default function InputPipeline() {
                     </View>
                 </ScrollView>
             </View>
-        </SafeAreaView >
+        </View >
     )
 }
 

@@ -1,5 +1,4 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   widthPercentageToDP as wp,
@@ -14,7 +13,7 @@ import Topbar from "~/components/TopBar";
 
 export default function PendingActivityScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
       <Topbar titleBar="Pending Aktivitas" />
       {/* header */}
@@ -81,7 +80,7 @@ export default function PendingActivityScreen() {
           </View>
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

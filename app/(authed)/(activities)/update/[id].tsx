@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { Button, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -204,7 +203,7 @@ export default function UpdateActivity() {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#F48120" }}>
+        <View style={{ flex: 1, backgroundColor: "#F48120" }}>
             {/* Header */}
             <Topbar titleBar="Update Aktivitas" />
             {/* header */}
@@ -898,7 +897,7 @@ export default function UpdateActivity() {
                     </View>
                 </ScrollView>
             </View>
-        </SafeAreaView >
+        </View >
     )
 }
 
