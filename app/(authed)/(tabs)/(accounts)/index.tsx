@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import {
   widthPercentageToDP as wp,
@@ -6,7 +6,6 @@ import {
 } from "react-native-responsive-screen";
 
 // icons
-import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -15,10 +14,19 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 // router
 import { useRouter, Href } from "expo-router";
 import Topbar from "~/components/TopBar";
+import { useState } from "react";
+import { useAuth } from "~/context/AuthContext";
 
 // components
 
 export default function AccountScreen() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const { logout, isLoading } = useAuth();
+
+  const handleLogout = async () => {
+    setModalVisible(true);
+  };
+
   const navigation = useRouter();
 
   return (
@@ -117,7 +125,8 @@ export default function AccountScreen() {
                   style={{ transform: [{ rotate: "180deg" }] }}
                 />
               </View>
-              <View
+              <TouchableOpacity
+                onPress={handleLogout}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
@@ -133,11 +142,85 @@ export default function AccountScreen() {
                   size={28}
                   color="#707070"
                 />
-              </View>
+              </TouchableOpacity>
             </TouchableOpacity>
           </View>
         </View>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={{ fontFamily: "Inter_400Regular" }}>
+              Apakah Anda yakin ingin keluar?
+            </Text>
+            {/* confirm logout */}
+            <View
+              style={{
+                flexDirection: "row",
+                width: "100%",
+                marginTop: 20,
+                gap: 10,
+              }}
+            >
+              <Pressable
+                style={{
+                  backgroundColor: "#F48120",
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  borderRadius: 5,
+                  width: "50%",
+                }}
+                onPress={() => setModalVisible(!modalVisible)}
+              >
+                <Text
+                  style={{
+                    fontFamily: "Inter_600SemiBold",
+                    fontSize: 14,
+                    textAlign: "center",
+                    color: "white",
+                  }}
+                >
+                  Batal
+                </Text>
+              </Pressable>
+              <Pressable
+                style={{
+                  backgroundColor: "#f5f5f5",
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  borderRadius: 5,
+                  width: "50%",
+                }}
+                onPress={logout}
+              >
+                {isLoading ?
+                  <ActivityIndicator color="#F48120" size={20} />
+                  :
+                  <Text
+                    style={{
+                      fontFamily: "Inter_600SemiBold",
+                      fontSize: 14,
+                      textAlign: "center",
+                      color: "#F48120",
+                      justifyContent: "center",
+                    }}
+                  >
+                    Keluar
+                  </Text>
+                }
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -192,5 +275,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     marginVertical: 10,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+
+  modalView: {
+    width: '90%',
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

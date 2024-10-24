@@ -16,7 +16,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import { Href, Link, useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 
 // components
 import * as Progress from 'react-native-progress';

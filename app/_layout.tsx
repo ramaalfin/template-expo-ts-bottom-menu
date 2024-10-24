@@ -1,33 +1,9 @@
 import "../global.css"
 
 import { Slot } from "expo-router";
-import { Theme, ThemeProvider } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SplashScreen } from 'expo-router';
 import * as React from 'react';
-import { Platform, StatusBar } from 'react-native';
-import { useColorScheme } from '~/lib/useColorScheme';
-import { NAV_THEME } from "~/lib/constants";
-
+import { StatusBar } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const LIGHT_THEME: Theme = {
-  dark: false,
-  colors: NAV_THEME.light,
-};
-const DARK_THEME: Theme = {
-  dark: true,
-  colors: NAV_THEME.dark,
-};
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-// Prevent the splash screen from auto-hiding before getting the color scheme.
-SplashScreen.preventAutoHideAsync();
-
 
 // fonts
 import {
@@ -38,6 +14,7 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
+import { AuthProvider } from "~/context/AuthContext";
 
 export default function Root() {
   let [fontsLoaded] = useFonts({
@@ -48,51 +25,18 @@ export default function Root() {
     Inter_700Bold,
   });
 
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
-
-  React.useEffect(() => {
-    (async () => {
-      const theme = await AsyncStorage.getItem('theme');
-      if (Platform.OS === 'web') {
-        document.documentElement.classList.add('bg-background');
-      }
-      if (!theme) {
-        AsyncStorage.setItem('theme', colorScheme);
-        setIsColorSchemeLoaded(true);
-        return;
-      }
-      const colorTheme = theme === 'dark' ? 'dark' : 'light';
-      if (colorTheme !== colorScheme) {
-        setColorScheme(colorTheme);
-
-        setIsColorSchemeLoaded(true);
-        return;
-      }
-      setIsColorSchemeLoaded(true);
-    })().finally(() => {
-      SplashScreen.hideAsync();
-    });
-  }, []);
-
-  if (!isColorSchemeLoaded) {
-    return null;
-  }
-
   if (!fontsLoaded) {
     return null;
   }
 
   return (
     <>
-      <ThemeProvider value={LIGHT_THEME}>
-        <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar backgroundColor="transparent" barStyle="dark-content" />
-          {/* AuthProvider */}
+      <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar backgroundColor="transparent" barStyle="dark-content" />
+        <AuthProvider>
           <Slot />
-          {/* AuthProvider */}
-        </SafeAreaView>
-      </ThemeProvider>
+        </AuthProvider>
+      </SafeAreaView>
     </>
   );
 }
