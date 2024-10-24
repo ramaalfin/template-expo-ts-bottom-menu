@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -8,6 +8,13 @@ import {
 } from "react-native-responsive-screen";
 
 import { useRouter } from "expo-router";
+
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchUserById } from "~/services/sys/user";
+import { fetchProspects } from "~/services/mst/prospects";
 
 // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -20,9 +27,17 @@ import Topbar from "~/components/TopBar";
 import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import StepIndicator from 'react-native-step-indicator';
+import { fetchApplications } from "~/services/mst/applications";
+import { fetchSectors } from "~/services/mst/sectors";
+import { fetchProductByIdApplication } from "~/services/mst/products";
+import { fetchSubSectorByIdSector } from "~/services/mst/sub-sector";
+import { fetchStatusSegment } from "~/services/mst/sts-segment";
+import { fetchAssignmentByIdUser } from "~/services/mst/assignments";
+import { storeFunding } from "~/services/mst/fundings";
 
-type InputPipelineProps = {
+interface InputPipelineProps {
     segment: string;
+    status_segment: string;
     nik: string;
     nama_lengkap: string;
     telepon: string;
@@ -30,6 +45,8 @@ type InputPipelineProps = {
     alamat_lengkap: string;
     jenis_produk: string;
     nama_produk: string;
+    sector: string;
+    sub_sector: string;
     level_pipeline: string;
     approval: string;
     potensi_dana: string;
@@ -64,37 +81,152 @@ const customStyles = {
     labelFontFamily: 'Inter_400Regular',
 }
 
+const nama_bulan = [
+    { id: 1, nama: "Januari" },
+    { id: 2, nama: "Februari" },
+    { id: 3, nama: "Maret" },
+    { id: 4, nama: "April" },
+    { id: 5, nama: "Mei" },
+    { id: 6, nama: "Juni" },
+    { id: 7, nama: "Juli" },
+    { id: 8, nama: "Agustus" },
+    { id: 9, nama: "September" },
+    { id: 10, nama: "Oktober" },
+    { id: 11, nama: "November" },
+    { id: 12, nama: "Desember" },
+]
+
 export default function InputPipeline() {
     const { control, handleSubmit, formState: { errors } } = useForm<InputPipelineProps>();
+    const { user, token } = useAuth();
     const navigation = useRouter();
 
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<InputPipelineProps>();
+    const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
 
-    const dataSegment = [
-        { label: "Retail-Oktober-Giro-Rp.100.000.000", value: 1 },
-        { label: "Retail-November-Giro-Rp.100.000.000", value: 2 },
-        { label: "Retail-Desember-Giro-Rp.100.000.000", value: 3 },
-    ];
-    const dataJenisProduk = [
-        { label: "Retail", value: 1 },
-        { label: "KPR", value: 2 },
-        { label: "KKB", value: 3 },
-    ];
-    const dataNamaProduk = [
-        { label: "Giro", value: 1 },
-        { label: "Tabungan", value: 2 },
-        { label: "Deposito", value: 3 },
-    ];
-    const dataLevelPipeline = [
-        { label: "Hot Prospect", value: 1 },
-        { label: "Warm", value: 2 },
-        { label: "Cold", value: 3 },
-    ];
-    const dataApproval = [
-        { label: "Mardianto", value: 1 },
-        { label: "Bambang", value: 2 },
-    ];
+    const [segments, setSegments] = useState<any[]>([]);
+    const [statusSegments, setStatusSegments] = useState<any[]>([]);
+    const [applications, setApplications] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
+    const [sectors, setSectors] = useState<any[]>([]);
+    const [subSectors, setSubSectors] = useState<any[]>([]);
+    const [pipelines, setPipelines] = useState<any[]>([]);
+    const [approvals, setApprovals] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchAssignmentByIdUser((user as any).id_user, (token as any).token);
+
+            if (response.data.code === 200) {
+                setSegments(response.data.data);
+            } else {
+                console.log("Gagal mengambil data segment");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchStatusSegment((token as any).token);
+
+            if (response.data.code === 200) {
+                setStatusSegments(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data status segment");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchApplications((token as any).token);
+
+            if (response.data.code === 200) {
+                setApplications(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data aplikasi");
+            }
+        }
+        fetchData();
+    }, []);
+
+    const handleProductChange = async (item: any) => {
+        const id_application = applications.find((app) => app.application === item.label)?.id_application;
+        const response = await fetchProductByIdApplication(id_application, (token as any).token);
+
+        if (response.data.code === 200) {
+            setProducts(response.data.data);
+        } else {
+            console.log("Gagal mengambil data produk");
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchSectors((token as any).token);
+
+            if (response.data.code === 200) {
+                setSectors(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data sektor");
+            }
+        }
+        fetchData();
+    }, []);
+
+    const handleSectorChange = async (item: any) => {
+        const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
+        const response = await fetchSubSectorByIdSector(id_sector, (token as any).token);
+
+        if (response.data.code === 200) {
+            setSubSectors(response.data.data);
+        } else {
+            console.log("Gagal mengambil data sub sektor");
+        }
+    }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchProspects((token as any).token);
+
+            if (response.data.code === 200) {
+                setPipelines(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data pipeline");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchUserById((user as any).id_user, (token as any).token);
+
+            if (response.data.code === 200) {
+                setApprovals(response.data.data.pemutus);
+            } else {
+                console.log("Gagal mengambil data pemutus");
+            }
+        }
+        fetchData();
+    }, []);
+
+    const dataSegment = segments.map((item) => ({
+        label: `${item.mst_goalsetting.mst_segment.segment} - ${nama_bulan[item.mst_goalsetting.bulan - 1].nama} - ${item.mst_goalsetting.mst_application.application} - ${item.mst_goalsetting.target}`,
+        value: item.id_assignment
+    }));
+    const dataStatusSegment = statusSegments.map((item) => ({ label: item.sts_segment, value: item.id_sts_segment }));
+    const dataJenisProduk = applications.map((item) => ({ label: item.application, value: item.id_application }));
+    const dataNamaProduk = products.map((item) => ({ label: item.product, value: item.id_product }));
+    const dataSector = sectors.map((item) => ({ label: item.sektor, value: item.id_sektor }));
+    const dataSubSector = subSectors.map((item) => ({ label: item.sub_sektor, value: item.id_sub_sektor }));
+    const dataLevelPipeline = pipelines.map((item) => ({ label: item.prospect, value: item.id_prospect }));
+    const dataApproval = approvals.map((item) => ({ label: item.nama, value: item.id_user }));
 
     const nextStep = (data: InputPipelineProps) => {
         if (activeStep === 0) {
@@ -109,9 +241,41 @@ export default function InputPipeline() {
         }
     }
 
-    const finalSubmit = (data: InputPipelineProps) => {
+    const finalSubmit = async (data: InputPipelineProps) => {
+        setLoading(true);
         const allData = { ...formData, ...data };
-        console.log(allData);
+
+        const dataFunding = {
+            id_assignment: Number(allData.segment),
+            id_product: Number(allData.nama_produk),
+            id_segment: Number(allData.status_segment),
+            id_sub_sektor: Number(allData.sub_sector),
+            nik: allData.nik,
+            nama: allData.nama_lengkap,
+            alamat: allData.alamat_lengkap,
+            no_telp: allData.telepon,
+            email: allData.email,
+            target: Number(allData.potensi_dana.replace(/\./g, '')),
+            id_checker: allData.approval,
+        }
+
+        try {
+            const response = await storeFunding({ token: (token as any).token, DataFunding: dataFunding });
+
+            if (response.data.code === 200) {
+                setLoading(false);
+                setModalVisible(true);
+                setModalMessage("Input Data Berhasil");
+            } else {
+                setLoading(false);
+                setModalVisible(true);
+                setModalMessage("Input Data Gagal");
+            }
+        } catch (error) {
+            setLoading(false);
+            setModalVisible(true);
+            setModalMessage("Input Data Gagal");
+        }
     };
 
     return (
@@ -153,13 +317,42 @@ export default function InputPipeline() {
                                                     valueField="value"
                                                     placeholder="Pilih"
                                                     data={dataSegment}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
                                             </View>
                                         )}
                                     />
                                     {errors.segment && <Text style={styles.errorField}>{errors.segment.message}</Text>}
+                                </View>
+
+                                <View style={styles.formItem}>
+                                    <Text style={styles.formLabel}>Status Segment</Text>
+                                    <Controller
+                                        control={control}
+                                        name="status_segment"
+                                        rules={{ required: "Segment wajib diisi" }}
+                                        render={({ field: { onChange, value } }) => (
+                                            <View style={{ position: "relative" }}>
+                                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                                <Dropdown
+                                                    style={[styles.dropdown, { borderColor: '#999' }]}
+                                                    placeholderStyle={styles.placeholderStyle}
+                                                    selectedTextStyle={styles.selectedTextStyle}
+                                                    iconStyle={styles.iconStyle}
+                                                    itemTextStyle={styles.itemTextStyle}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder="Pilih"
+                                                    data={dataStatusSegment}
+                                                    onChange={(item) => onChange(item.value)}
+                                                    value={value}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                    {errors.status_segment && <Text style={styles.errorField}>{errors.status_segment.message}</Text>}
                                 </View>
 
                                 <View style={styles.formItem}>
@@ -173,7 +366,7 @@ export default function InputPipeline() {
                                                 <FontAwesome6 name="clipboard-user" size={18} color="#F48120" style={styles.iconInput} />
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={onChange}
+                                                    onChangeText={(val) => onChange(val.replace(/\D/g, "").slice(0, 16))}
                                                     value={value}
                                                     style={styles.input}
                                                     inputMode="numeric"
@@ -210,13 +403,20 @@ export default function InputPipeline() {
                                     <Controller
                                         control={control}
                                         name="telepon"
-                                        rules={{ required: "Telepon wajib diisi" }}
+                                        rules={{
+                                            required: "Telepon wajib diisi",
+                                            pattern: {
+                                                value: /^(0)(\d{10,15})$/,
+                                                message: "No Telepon tidak valid"
+                                            }
+
+                                        }}
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <MaterialCommunityIcons name="phone" size={18} color="#F48120" style={styles.iconInput} />
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={onChange}
+                                                    onChangeText={(val) => onChange(val.replace(/\D/g, "").slice(0, 15))}
                                                     value={value}
                                                     style={styles.input}
                                                     inputMode="tel"
@@ -232,7 +432,10 @@ export default function InputPipeline() {
                                     <Controller
                                         control={control}
                                         name="email"
-                                        rules={{ required: "Email wajib diisi" }}
+                                        rules={{
+                                            required: "Email wajib diisi",
+                                            validate: (value) => value.includes("@") || "Email tidak valid"
+                                        }}
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <MaterialIcons name="alternate-email" size={18} color="#F48120" style={styles.iconInput} />
@@ -313,7 +516,11 @@ export default function InputPipeline() {
                                                     valueField="value"
                                                     placeholder="Pilih"
                                                     data={dataJenisProduk}
-                                                    onChange={onChange}
+                                                    onChange={(item) => {
+                                                        handleProductChange(item);
+                                                        onChange(item.value);
+
+                                                    }}
                                                     value={value}
                                                 />
                                             </View>
@@ -342,13 +549,74 @@ export default function InputPipeline() {
                                                     valueField="value"
                                                     placeholder="Pilih"
                                                     data={dataNamaProduk}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
                                             </View>
                                         )}
                                     />
                                     {errors.nama_produk && <Text style={styles.errorField}>{errors.nama_produk.message}</Text>}
+                                </View>
+
+                                <View style={styles.formItem}>
+                                    <Text style={styles.formLabel}>Sektor</Text>
+                                    <Controller
+                                        control={control}
+                                        name="sector"
+                                        rules={{ required: "Sektor wajib diisi" }}
+                                        render={({ field: { onChange, value } }) => (
+                                            <View style={{ position: "relative" }}>
+                                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                                <Dropdown
+                                                    style={[styles.dropdown, { borderColor: "#999" }]}
+                                                    placeholderStyle={styles.placeholderStyle}
+                                                    selectedTextStyle={styles.selectedTextStyle}
+                                                    iconStyle={styles.iconStyle}
+                                                    itemTextStyle={styles.itemTextStyle}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder="Pilih"
+                                                    data={dataSector}
+                                                    onChange={(item) => {
+                                                        handleSectorChange(item);
+                                                        onChange(item.value);
+                                                    }}
+                                                    value={value}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                    {errors.sector && <Text style={styles.errorField}>{errors.sector.message}</Text>}
+                                </View>
+
+                                <View style={styles.formItem}>
+                                    <Text style={styles.formLabel}>Sub Sektor</Text>
+                                    <Controller
+                                        control={control}
+                                        name="sub_sector"
+                                        rules={{ required: "Sub Sektor wajib diisi" }}
+                                        render={({ field: { onChange, value } }) => (
+                                            <View style={{ position: "relative" }}>
+                                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                                <Dropdown
+                                                    style={[styles.dropdown, { borderColor: "#999" }]}
+                                                    placeholderStyle={styles.placeholderStyle}
+                                                    selectedTextStyle={styles.selectedTextStyle}
+                                                    iconStyle={styles.iconStyle}
+                                                    itemTextStyle={styles.itemTextStyle}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder="Pilih"
+                                                    data={dataSubSector}
+                                                    onChange={(item) => onChange(item.value)}
+                                                    value={value}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                    {errors.sub_sector && <Text style={styles.errorField}>{errors.sub_sector.message}</Text>}
                                 </View>
 
                                 <View style={styles.formItem}>
@@ -372,7 +640,7 @@ export default function InputPipeline() {
                                                     placeholder="Pilih"
                                                     data={dataLevelPipeline}
                                                     value={value}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                 />
                                             </View>
                                         )}
@@ -401,7 +669,7 @@ export default function InputPipeline() {
                                                     placeholder={"Pilih"}
                                                     data={dataApproval}
                                                     value={value}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                 />
                                             </View>
                                         )}
@@ -432,11 +700,12 @@ export default function InputPipeline() {
                                                         }]
                                                     }
                                                 />
+                                                <Text style={styles.rupiahText}>Rp</Text>
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={onChange}
+                                                    onChangeText={(value) => onChange(value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, "."))}
                                                     value={value}
-                                                    style={styles.input}
+                                                    style={[styles.input, { paddingLeft: 55 }]}
                                                     inputMode="numeric"
                                                 />
                                             </View>
@@ -480,7 +749,11 @@ export default function InputPipeline() {
                                         style={[styles.btnItem, { backgroundColor: "#F48120", borderColor: "#F48120" }]}
                                         onPress={handleSubmit(finalSubmit)}
                                     >
-                                        <Text style={[styles.btnText, { color: "#FFF" }]}>Kirim</Text>
+                                        {loading ? (
+                                            <ActivityIndicator size="small" color="#FFF" />
+                                        ) : (
+                                            <Text style={[styles.btnText, { color: "#FFF" }]}>Kirim</Text>
+                                        )}
                                     </TouchableOpacity>
                                 </View>
                             </>
@@ -488,6 +761,45 @@ export default function InputPipeline() {
                     </View>
                 </ScrollView>
             </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <FontAwesome6 name="circle-check" size={65} color="#9CEF39" style={{ marginBottom: 15 }} />
+                        <Text style={{ fontFamily: "Inter_400Regular" }}>
+                            {modalMessage}
+                        </Text>
+                        <View style={{ marginVertical: 15, borderWidth: .5, borderColor: "#F48120", width: "100%" }}></View>
+                        <Pressable
+                            style={{
+                                paddingHorizontal: 10,
+                                borderRadius: 5,
+                            }}
+                            onPress={() => { setModalVisible(!modalVisible); navigation.back() }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: "Inter_600SemiBold",
+                                    fontSize: 14,
+                                    textAlign: "center",
+                                    color: "#F48120",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                Tutup
+                            </Text>
+
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </View >
     )
 }
@@ -517,6 +829,7 @@ const styles = StyleSheet.create({
         fontFamily: "Inter_400Regular"
     },
     textArea: {
+        paddingTop: 12,
         paddingLeft: 35,
         marginTop: 5,
         borderColor: "#979797",
@@ -591,5 +904,35 @@ const styles = StyleSheet.create({
     btnText: {
         fontSize: 14,
         fontFamily: "Inter_400Regular",
+    },
+    rupiahText: {
+        position: "absolute",
+        top: 16,
+        left: 35,
+        fontSize: 13,
+        fontFamily: "Inter_400Regular"
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+
+    modalView: {
+        width: '60%',
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
 });

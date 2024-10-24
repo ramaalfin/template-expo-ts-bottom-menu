@@ -21,7 +21,7 @@ import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import StepIndicator from 'react-native-step-indicator';
 
-type DetailInputPipelineProps = {
+interface DetailInputPipelineProps {
     segment: string;
     nik: string;
     nama_lengkap: string;

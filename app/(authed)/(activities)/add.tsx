@@ -23,7 +23,7 @@ import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-type AddActivityProps = {
+interface AddActivityProps {
     pilih_client: string;
     jenis_produk: string;
     nama_produk: string;

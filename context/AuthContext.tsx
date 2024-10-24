@@ -9,6 +9,7 @@ type AuthContextType = {
     isAuthenticated: boolean;
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
+    user: object | null;
     token: string | null;
     isLoading: boolean;
     errorMessage: string | null;
@@ -49,14 +50,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const response = await loginUser({ email, password });
 
-            if (response.data.tokens.access) {
+            if (response.code === 200) {
+                const user = JSON.stringify(response.data.user);
                 const accessToken = JSON.stringify(response.data.tokens.access);
                 await SecureStore.setItemAsync("accessToken", accessToken);
+                await SecureStore.setItemAsync("user", user);
+
                 setIsAuthenticated(true);
                 setErrorMessage(null);
                 router.replace('/(homes)' as Href);
             } else {
-                setErrorMessage(response?.data.message);
+                setErrorMessage(response?.message);
             }
         } catch (error) {
             setErrorMessage("Login failed");
@@ -73,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (accessToken) {
                 await logoutUser(accessToken);
                 await SecureStore.deleteItemAsync("accessToken");
+                await SecureStore.deleteItemAsync("user");
                 setIsAuthenticated(false);
                 setErrorMessage(null);
                 router.replace('/login' as Href);
@@ -85,13 +90,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const [token, setToken] = useState<string | null>(null);
+    const [user, setUser] = useState<object | null>(null);
 
     useEffect(() => {
         const fetchToken = async () => {
             const storedToken = await SecureStore.getItemAsync("accessToken");
-            setToken(storedToken);
+            setToken(storedToken ? JSON.parse(storedToken) : null);
         };
         fetchToken();
+    }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const storedUser = await SecureStore.getItemAsync("user");
+            setUser(storedUser ? JSON.parse(storedUser) : null);
+        };
+        fetchUser();
     }, []);
 
     useEffect(() => {
@@ -106,7 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [errorMessage]);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout, token, errorMessage, isLoading }}>
+        <AuthContext.Provider value={{ isAuthenticated, login, logout, user, token, errorMessage, isLoading }}>
             {children}
         </AuthContext.Provider>
     );

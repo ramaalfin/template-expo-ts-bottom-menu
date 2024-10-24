@@ -24,7 +24,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 import { useRouter } from "expo-router";
 
-type UpdateActivityProps = {
+interface UpdateActivityProps {
     pilih_client: string;
     jenis_produk: string;
     nama_produk: string;
