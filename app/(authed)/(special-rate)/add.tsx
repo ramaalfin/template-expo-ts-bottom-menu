@@ -48,7 +48,7 @@ interface InputSpecialRateProps {
 };
 
 export default function InputSpecialRate() {
-    const { control, handleSubmit, formState: { errors }, getValues } = useForm<InputSpecialRateProps>();
+    const { control, handleSubmit, formState: { errors }, getValues, setValue } = useForm<InputSpecialRateProps>();
     const navigation = useRouter();
     const { state } = useAuth();
 
@@ -262,7 +262,12 @@ export default function InputSpecialRate() {
                                             valueField="value"
                                             placeholder="Pilih"
                                             data={dataJangkaWaktu}
-                                            onChange={(item) => onChange(item.value)}
+                                            onChange={(item) => {
+                                                onChange(item.value)
+                                                const openingDate = getValues("tgl_buka");
+                                                const closingDate = moment(openingDate).add(item.value, "months").format("YYYY-MM-DD");
+                                                setValue("tgl_jatuh_tempo", closingDate);
+                                            }}
                                             value={value}
                                         />
                                     </View>
@@ -278,25 +283,25 @@ export default function InputSpecialRate() {
                                 control={control}
                                 name="tgl_jatuh_tempo"
                                 rules={{ required: "Tanggal Jatuh Tempo wajib diisi" }}
-                                render={({ field: { onChange, value } }) => (
+                                render={({ field: { value } }) => (
                                     <>
                                         <View style={{ position: "relative" }}>
-                                            <Pressable onPress={showClosingDatePicker} style={styles.dateInput}>
+                                            <View style={styles.dateInput}>
                                                 <FontAwesome6 name="calendar" size={20} color="#F48120" style={[styles.iconInput, { marginTop: -7 }]} />
                                                 <Text style={styles.dateText}>
-                                                    {value ? formatDate(new Date(value)) : "Pilih"}
+                                                    {value ? formatDate(new Date(value)) : "-"}
                                                 </Text>
-                                            </Pressable>
+                                            </View>
                                         </View>
 
-                                        <DateTimePickerModal
+                                        {/* <DateTimePickerModal
                                             isVisible={isClosingDatePickerVisible}
                                             mode="date"
                                             onConfirm={(date) => handleConfirmClosingDate(moment(date).format("YYYY-MM-DD"), onChange)}
                                             onCancel={hideClosingDatePicker}
                                             date={value ? moment(value).toDate() : new Date()}
                                             locale="id-ID"
-                                        />
+                                        /> */}
                                     </>
                                 )}
                             />
@@ -393,6 +398,7 @@ export default function InputSpecialRate() {
                                             style={[styles.input, { paddingLeft: 35 }]}
                                             inputMode="numeric"
                                         />
+                                        <Text style={styles.textWarning}><Text style={{ color: "red" }}>*</Text> Gunakan koma(,) untuk angka desimal</Text>
                                     </View>
                                 )}
                             />
@@ -415,6 +421,7 @@ export default function InputSpecialRate() {
                                             style={[styles.input, { paddingLeft: 35 }]}
                                             inputMode="numeric"
                                         />
+                                        <Text style={styles.textWarning}><Text style={{ color: "red" }}>*</Text> Gunakan koma(,) untuk angka desimal</Text>
                                     </View>
                                 )}
                             />
@@ -567,6 +574,11 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginTop: 5,
         paddingLeft: 35,
+    },
+    textWarning: {
+        fontSize: 11,
+        fontFamily: "Inter_400Regular",
+        marginTop: 5,
     },
     placeholderStyle: {
         fontSize: 13,
