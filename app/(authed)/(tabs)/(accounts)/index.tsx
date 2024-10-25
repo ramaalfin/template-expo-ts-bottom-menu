@@ -31,6 +31,8 @@ export default function AccountScreen() {
     setLoading(true);
 
     if (state.accessToken.token) {
+      setLoading(false);
+      setModalVisible(false);
       await SecureStore.deleteItemAsync("accessToken");
       await SecureStore.deleteItemAsync("user");
 
