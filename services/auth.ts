@@ -5,6 +5,10 @@ interface LoginProps {
   password: string;
 }
 
+interface LogoutProps {
+  accessToken: string;
+}
+
 interface ChangePasswordProps {
   password: string;
   newPassword: string;
@@ -31,13 +35,11 @@ export const loginUser = async ({ email, password }: LoginProps) => {
   }
 };
 
-export const logoutUser = async (accessToken: string) => {
+export const logoutUser = async ({ accessToken }: LogoutProps) => {
   try {
     const response = await axios.post(
       ` ${process.env.EXPO_PUBLIC_API_URL}/v1/auth/logout`,
-      {
-        accessToken,
-      },
+      { accessToken },
       {
         headers: {
           "Content-Type": "application/json",

@@ -24,9 +24,9 @@ export default function TabLayout() {
           title: "Home",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <HomeIconActive width={26} height={29} />
+              <HomeIconActive width={27} height={30} />
             ) : (
-              <HomeIconInactive width={26} height={29} />
+              <HomeIconInactive width={27} height={30} />
             ),
           headerShown: false,
         }}

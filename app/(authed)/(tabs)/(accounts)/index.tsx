@@ -5,6 +5,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+import * as SecureStore from 'expo-secure-store';
+
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
@@ -13,18 +15,43 @@ import { useRouter, Href } from "expo-router";
 import Topbar from "~/components/TopBar";
 import { useState } from "react";
 import { useAuth } from "~/context/AuthContext";
+import { logoutUser } from "~/services/auth";
 
 // components
 
 export default function AccountScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const { logout, isLoading } = useAuth();
-
-  const handleLogout = async () => {
-    setModalVisible(true);
-  };
+  const { state } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const navigation = useRouter();
+
+  const logout = async () => {
+    setModalVisible(true);
+    setLoading(true);
+
+    if (state.accessToken.token) {
+      await SecureStore.deleteItemAsync("accessToken");
+      await SecureStore.deleteItemAsync("user");
+
+      navigation.push("/login" as Href<"/login">);
+    }
+
+    // try {
+    //   const response = await logoutUser({ accessToken: state.accessToken.token });
+
+    //   console.log(response);
+
+    //   if (response.code === 200) {
+    //     setLoading(false);
+    //     setModalVisible(false);
+    //     return navigation.push("/login" as Href<"/login">);
+    //   }
+    // } catch (error) {
+    //   console.error(error);
+    // }
+
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
@@ -111,7 +138,7 @@ export default function AccountScreen() {
                 style={{ width: 25, height: 25 }}
               />
               <TouchableOpacity
-                onPress={handleLogout}
+                onPress={() => setModalVisible(true)}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
@@ -133,79 +160,81 @@ export default function AccountScreen() {
         </View>
       </View>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={{ fontFamily: "Inter_400Regular" }}>
-              Apakah Anda yakin ingin keluar?
-            </Text>
-            {/* confirm logout */}
-            <View
-              style={{
-                flexDirection: "row",
-                width: "100%",
-                marginTop: 20,
-                gap: 10,
-              }}
-            >
-              <Pressable
+      {modalVisible &&
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={{ fontFamily: "Inter_400Regular" }}>
+                Apakah Anda yakin ingin keluar?
+              </Text>
+              {/* confirm logout */}
+              <View
                 style={{
-                  backgroundColor: "#F48120",
-                  paddingVertical: 8,
-                  paddingHorizontal: 10,
-                  borderRadius: 5,
-                  width: "50%",
+                  flexDirection: "row",
+                  width: "100%",
+                  marginTop: 20,
+                  gap: 10,
                 }}
-                onPress={() => setModalVisible(!modalVisible)}
               >
-                <Text
+                <Pressable
                   style={{
-                    fontFamily: "Inter_600SemiBold",
-                    fontSize: 14,
-                    textAlign: "center",
-                    color: "white",
+                    backgroundColor: "#F48120",
+                    paddingVertical: 8,
+                    paddingHorizontal: 10,
+                    borderRadius: 5,
+                    width: "50%",
                   }}
+                  onPress={() => setModalVisible(!modalVisible)}
                 >
-                  Batal
-                </Text>
-              </Pressable>
-              <Pressable
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  paddingVertical: 8,
-                  paddingHorizontal: 10,
-                  borderRadius: 5,
-                  width: "50%",
-                }}
-                onPress={logout}
-              >
-                {isLoading ?
-                  <ActivityIndicator color="#F48120" size={20} />
-                  :
                   <Text
                     style={{
                       fontFamily: "Inter_600SemiBold",
                       fontSize: 14,
                       textAlign: "center",
-                      color: "#F48120",
-                      justifyContent: "center",
+                      color: "white",
                     }}
                   >
-                    Keluar
+                    Batal
                   </Text>
-                }
-              </Pressable>
+                </Pressable>
+                <Pressable
+                  style={{
+                    backgroundColor: "#f5f5f5",
+                    paddingVertical: 8,
+                    paddingHorizontal: 10,
+                    borderRadius: 5,
+                    width: "50%",
+                  }}
+                  onPress={logout}
+                >
+                  {loading ?
+                    <ActivityIndicator color="#F48120" size={20} />
+                    :
+                    <Text
+                      style={{
+                        fontFamily: "Inter_600SemiBold",
+                        fontSize: 14,
+                        textAlign: "center",
+                        color: "#F48120",
+                        justifyContent: "center",
+                      }}
+                    >
+                      Keluar
+                    </Text>
+                  }
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      }
     </View>
   );
 }
