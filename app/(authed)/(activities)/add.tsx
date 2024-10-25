@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
@@ -22,59 +22,104 @@ import { formatDate } from "~/utils/formatDate";
 import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { fetchAllFunding } from "~/services/mst/fundings";
+import { useAuth } from "~/context/AuthContext";
+import { fetchKegiatan } from "~/services/mst/kegiatan";
+import { fetchStatusPipeline } from "~/services/mst/sts-pipeline";
+import { useLocation } from "~/hooks/useLocation";
 
 interface AddActivityProps {
-    pilih_client: string;
-    jenis_produk: string;
-    nama_produk: string;
-    kegiatan: string;
-    status_pipeline: string;
+    id_funding: string;
+    id_kegiatan: string;
+    id_hasil: string;
     tanggal: string;
     jam_mulai: string;
     jam_selesai: string;
     deskripsi: string;
+    longitude: string;
+    latitude: string;
 };
 
 export default function AddActivity() {
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<AddActivityProps>();
+    const { state } = useAuth();
+    const { longitude, latitude, errorMessage } = useLocation();
+    const navigation = useRouter();
+    const isEditable = false;
+    const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+
+    const [clients, setClients] = useState<any[]>([]);
+    const [jenisProduk, setJenisProduk] = useState("");
+    const [namaProduk, setNamaProduk] = useState("");
+    const [kegiatan, setKegiatan] = useState<any[]>([]);
+    const [statusPipeline, setStatusPipeline] = useState<any[]>([]);
+
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isJamMulaiPickerVisible, setJamMulaiPickerVisibility] = useState(false);
     const [isJamSelesaiPickerVisible, setJamSelesaiPickerVisibility] = useState(false);
 
-    const dataPilihClient = [
-        { label: "Rama", value: 1 },
-        { label: "John", value: 2 },
-        { label: "Doe", value: 3 },
-    ];
-    const dataJenisProduk = [
-        { label: "Giro", value: 1 },
-        { label: "Tabungan", value: 2 },
-        { label: "Deposito", value: 3 },
-        { label: "Cemerlang", value: 4 },
-    ];
-    const dataNamaProduk = [
-        { label: "Giro", value: 1 },
-        { label: "Tabungan", value: 2 },
-        { label: "Deposito", value: 3 },
-        { label: "Cemerlang", value: 4 },
-    ];
-    const dataKegiatan = [
-        { label: "Visit", value: 1 },
-        { label: "Telepon", value: 2 },
-        { label: "Chat/SMS", value: 3 },
-        { label: "Email", value: 4 },
-        { label: "Monitoring Evaluasi", value: 5 },
-    ]
-    const dataStatusPipeline = [
-        { label: "Visit", value: 1 },
-        { label: "Present", value: 2 },
-        { label: "Upsell", value: 3 },
-        { label: "Topup", value: 4 },
-        { label: "Closing", value: 5 },
-        { label: "Belum Closing", value: 6 },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchAllFunding(state.accessToken.token);
 
-    const navigation = useRouter();
+            if (response.data.code === 200) {
+                setClients(response.data.data);
+            } else {
+                console.log("Gagal mengambil data client");
+            }
+        }
+
+        fetchData();
+    }, []);
+
+    const handleClientChange = (value: any) => {
+        const client = clients.find((item) => item.id_funding === value.value);
+
+        if (client) {
+            setJenisProduk(client.mst_product.product);
+            setNamaProduk(client.mst_product.mst_application.application);
+        } else {
+            setJenisProduk("");
+            setNamaProduk("");
+        }
+    }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchKegiatan(state.accessToken.token);
+
+            if (response.data.code === 200) {
+                setKegiatan(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data kegiatan");
+            }
+        }
+
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchStatusPipeline(state.accessToken.token);
+
+            if (response.data.code === 200) {
+                setStatusPipeline(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data status pipeline");
+            }
+        }
+
+        fetchData();
+    }, []);
+
+    const dataPilihClient = clients.map((item) => ({
+        label: `${item.nama} - ${item.alamat}`,
+        value: item.id_funding
+    }));
+    const dataKegiatan = kegiatan.map((item) => ({ label: item.kegiatan, value: item.id_kegiatan }));
+    const dataStatusPipeline = statusPipeline.map((item) => ({ label: item.sts_pipeline, value: item.id_sts_pipeline }));
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
@@ -115,7 +160,9 @@ export default function AddActivity() {
         hideJamSelesaiPicker();
     }
 
-    const submit = (data: any) => {
+    const submit = (data: AddActivityProps) => {
+        setLoading(true);
+
         console.log(data);
     }
 
@@ -132,7 +179,7 @@ export default function AddActivity() {
                             <Text style={styles.formLabel}>Pilih Client</Text>
                             <Controller
                                 control={control}
-                                name="pilih_client"
+                                name="id_funding"
                                 rules={{ required: "Pilih Client wajib diisi" }}
                                 render={({ field: { onChange, value } }) => (
                                     <View style={{ position: "relative" }}>
@@ -150,77 +197,38 @@ export default function AddActivity() {
                                             placeholder="Pilih"
                                             data={dataPilihClient}
                                             value={value}
-                                            onChange={onChange}
+                                            onChange={(item) => {
+                                                handleClientChange(item);
+                                                onChange(item.value);
+                                            }}
                                         />
                                     </View>
                                 )}
                             />
-                            {errors.pilih_client && <Text style={styles.errorField}>{errors.pilih_client.message}</Text>}
+                            {errors.id_funding && <Text style={styles.errorField}>{errors.id_funding.message}</Text>}
                         </View>
 
                         <View style={styles.formItem}>
                             <Text style={styles.formLabel}>Jenis Produk</Text>
-                            <Controller
-                                control={control}
-                                name="jenis_produk"
-                                rules={{ required: "Jenis Produk wajib diisi" }}
-                                render={({ field: { onChange, value } }) => (
-                                    <View style={{ position: "relative" }}>
-                                        <FontAwesome name="file" size={18} color="#F48120" style={styles.iconInput} />
-                                        <Dropdown
-                                            style={[styles.dropdown, { borderColor: "#999" }]}
-                                            placeholderStyle={styles.placeholderStyle}
-                                            selectedTextStyle={styles.selectedTextStyle}
-                                            iconStyle={styles.iconStyle}
-                                            itemTextStyle={styles.itemTextStyle}
-                                            maxHeight={300}
-                                            labelField="label"
-                                            valueField="value"
-                                            placeholder="Pilih"
-                                            data={dataJenisProduk}
-                                            value={value}
-                                            onChange={onChange}
-                                        />
-                                    </View>
-                                )}
-                            />
-                            {errors.jenis_produk && <Text style={styles.errorField}>{errors.jenis_produk.message}</Text>}
+                            <View style={{ position: "relative" }}>
+                                <FontAwesome name="file" size={18} color="#F48120" style={styles.iconInput} />
+                                <Input value={jenisProduk} style={[styles.input, !isEditable && styles.inputDisabled]} editable={false} />
+                            </View>
                         </View>
 
                         <View style={styles.formItem}>
                             <Text style={styles.formLabel}>Nama Produk</Text>
-                            <Controller
-                                control={control}
-                                name="nama_produk"
-                                rules={{ required: "Nama Produk wajib diisi" }}
-                                render={({ field: { onChange, value } }) => (
-                                    <View style={{ position: "relative" }}>
-                                        <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
-                                        <Dropdown
-                                            style={[styles.dropdown, { borderColor: "#999" }]}
-                                            placeholderStyle={styles.placeholderStyle}
-                                            selectedTextStyle={styles.selectedTextStyle}
-                                            iconStyle={styles.iconStyle}
-                                            itemTextStyle={styles.itemTextStyle}
-                                            maxHeight={300}
-                                            labelField="label"
-                                            valueField="value"
-                                            placeholder="Pilih"
-                                            data={dataNamaProduk}
-                                            onChange={onChange}
-                                            value={value}
-                                        />
-                                    </View>
-                                )}
-                            />
-                            {errors.nama_produk && <Text style={styles.errorField}>{errors.nama_produk.message}</Text>}
+                            <View style={{ position: "relative" }}>
+                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                <Input value={namaProduk} style={[styles.input, !isEditable && styles.inputDisabled]} editable={false} />
+                            </View>
                         </View>
 
                         <View style={styles.formItem}>
                             <Text style={styles.formLabel}>Kegiatan</Text>
                             <Controller
                                 control={control}
-                                name="kegiatan"
+                                name="id_kegiatan"
                                 rules={{ required: "Kegiatan wajib diisi" }}
                                 render={({ field: { onChange, value } }) => (
                                     <View style={{ position: "relative" }}>
@@ -242,14 +250,14 @@ export default function AddActivity() {
                                     </View>
                                 )}
                             />
-                            {errors.kegiatan && <Text style={styles.errorField}>{errors.kegiatan.message}</Text>}
+                            {errors.id_kegiatan && <Text style={styles.errorField}>{errors.id_kegiatan.message}</Text>}
                         </View>
 
                         <View style={styles.formItem}>
                             <Text style={styles.formLabel}>Status Pipeline</Text>
                             <Controller
                                 control={control}
-                                name="status_pipeline"
+                                name="id_hasil"
                                 rules={{ required: "Kegiatan wajib diisi" }}
                                 render={({ field: { onChange, value } }) => (
                                     <View style={{ position: "relative" }}>
@@ -271,7 +279,7 @@ export default function AddActivity() {
                                     </View>
                                 )}
                             />
-                            {errors.status_pipeline && <Text style={styles.errorField}>{errors.status_pipeline.message}</Text>}
+                            {errors.id_hasil && <Text style={styles.errorField}>{errors.id_hasil.message}</Text>}
                         </View>
 
                         <View style={styles.formItem}>
@@ -460,7 +468,7 @@ const styles = StyleSheet.create({
         marginTop: 5,
         borderColor: "#979797",
         fontSize: 13,
-        fontFamily: "Inter_400Regular"
+        fontFamily: "Inter_400Regular",
     },
     textArea: {
         paddingTop: 12,
@@ -487,6 +495,10 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginTop: 5,
         paddingLeft: 35,
+    },
+    inputDisabled: {
+        backgroundColor: "#FFF",
+        color: "#000",
     },
     placeholderStyle: {
         fontSize: 13,
