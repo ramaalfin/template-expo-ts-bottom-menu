@@ -7,9 +7,6 @@ import {
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Fontisto from "@expo/vector-icons/Fontisto";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 // router
 import { useRouter, Href } from "expo-router";
@@ -71,7 +68,10 @@ export default function AccountScreen() {
                 navigation.push("/about-apps" as Href<"/about-apps">);
               }}
             >
-              <FontAwesome5 name="info-circle" size={27} color="#1D4592" />
+              <Image
+                source={require("~/assets/icon/ic_info.png")}
+                style={{ width: 25, height: 25 }}
+              />
 
               <View style={styles.menuItem}>
                 <Text style={styles.menuText}>Tentang Aplikasi</Text>
@@ -90,11 +90,9 @@ export default function AccountScreen() {
                 navigation.push("/change-password" as Href<"/change-password">);
               }}
             >
-              <Fontisto
-                name="locked"
-                size={27}
-                color="#1D4592"
-                style={{ marginRight: 4 }}
+              <Image
+                source={require("~/assets/icon/ic_password2.png")}
+                style={{ width: 25, height: 25 }}
               />
               <View style={styles.menuItem}>
                 <Text style={styles.menuText}>Ganti Password</Text>
@@ -108,23 +106,10 @@ export default function AccountScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menu}>
-              <View
-                style={{
-                  borderRadius: 50,
-                  backgroundColor: "#1D4592",
-                  width: 27,
-                  height: 27,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="location-exit"
-                  size={18}
-                  color="white"
-                  style={{ transform: [{ rotate: "180deg" }] }}
-                />
-              </View>
+              <Image
+                source={require("~/assets/icon/ic_logout.png")}
+                style={{ width: 25, height: 25 }}
+              />
               <TouchableOpacity
                 onPress={handleLogout}
                 style={{

@@ -7,9 +7,6 @@ import {
 
 import { Href, useRouter } from "expo-router";
 
-// icons
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-
 // components
 import Topbar from "~/components/TopBar";
 
@@ -94,9 +91,10 @@ export default function DetailPipeline() {
 
                         <View style={styles.pipelineContainer}>
                             <View style={styles.pipelineContent}>
-                                <View style={styles.pipelineIcon}>
-                                    <FontAwesome5 name="coins" size={20} color="#fff" />
-                                </View>
+                                <Image
+                                    source={require("~/assets/icon/ic_koin_sq.png")}
+                                    style={{ width: 45, height: 45 }}
+                                />
                                 <View style={{ width: "90%" }}>
                                     <Text style={styles.dateText}>04 Oktober 2024 12:00:00 WIB</Text>
                                     <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
@@ -111,9 +109,10 @@ export default function DetailPipeline() {
 
                         <View style={styles.pipelineContainer}>
                             <View style={styles.pipelineContent}>
-                                <View style={styles.pipelineIcon}>
-                                    <FontAwesome5 name="coins" size={20} color="#fff" />
-                                </View>
+                                <Image
+                                    source={require("~/assets/icon/ic_koin_sq.png")}
+                                    style={{ width: 45, height: 45 }}
+                                />
                                 <View style={{ width: "90%" }}>
                                     <Text style={styles.dateText}>04 Oktober 2024 12:00:00 WIB</Text>
                                     <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
@@ -128,9 +127,10 @@ export default function DetailPipeline() {
 
                         <View style={styles.pipelineContainer}>
                             <View style={styles.pipelineContent}>
-                                <View style={styles.pipelineIcon}>
-                                    <FontAwesome5 name="coins" size={20} color="#fff" />
-                                </View>
+                                <Image
+                                    source={require("~/assets/icon/ic_koin_sq.png")}
+                                    style={{ width: 45, height: 45 }}
+                                />
                                 <View style={{ width: "90%" }}>
                                     <Text style={styles.dateText}>04 Oktober 2024 12:00:00 WIB</Text>
                                     <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>

@@ -6,7 +6,7 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import { useAuth } from "~/context/AuthContext";
+import * as SecureStore from 'expo-secure-store';
 
 // icons
 import { Feather } from "@expo/vector-icons";
@@ -24,6 +24,8 @@ import {
     TouchableOpacity,
     ActivityIndicator,
 } from "react-native";
+import { loginUser } from "~/services/auth";
+import { Href, useRouter } from "expo-router";
 
 
 type LoginProps = {
@@ -34,16 +36,38 @@ type LoginProps = {
 export default function Login() {
     const { control, handleSubmit, formState: { errors } } = useForm<LoginProps>();
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const { login, errorMessage, isLoading } = useAuth();
+    const navigation = useRouter();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
-    const submit = async (data: LoginProps) => {
-        await login(data.email, data.password);
-    }
+    const submit = async ({ email, password }: LoginProps) => {
+        setLoading(true);
+        try {
+            const response = await loginUser({ email, password });
+
+            if (response.code === 200) {
+                const user = JSON.stringify(response.data.user);
+                const accessToken = JSON.stringify(response.data.tokens.access);
+
+                await SecureStore.setItemAsync("accessToken", accessToken);
+                await SecureStore.setItemAsync("user", user);
+
+                navigation.replace("/(homes)" as Href);
+                setErrorMessage(null);
+            } else {
+                setErrorMessage(response?.message);
+            }
+        } catch (error) {
+            setErrorMessage("Login failed");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -79,7 +103,7 @@ export default function Login() {
                     <Image
                         style={styles.logo}
                         resizeMode="contain"
-                        source={require("~/assets/icon/icon-login.png")}
+                        source={require("~/assets/icon/icon_login.png")}
                     />
                     <Text style={styles.logoText}>Funding App of Super Team</Text>
                 </View>
@@ -174,9 +198,9 @@ export default function Login() {
                     <TouchableOpacity
                         onPress={handleSubmit(submit)}
                         style={styles.btnLogin}
-                        disabled={isLoading}
+                        disabled={loading}
                     >
-                        {isLoading ? (
+                        {loading ? (
                             <ActivityIndicator color="white" size={20} />
                         ) : (
                             <Text style={{ color: "white", fontFamily: "Inter_500Medium" }}>Masuk</Text>

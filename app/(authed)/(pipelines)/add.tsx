@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -34,6 +34,7 @@ import { fetchSubSectorByIdSector } from "~/services/mst/sub-sector";
 import { fetchStatusSegment } from "~/services/mst/sts-segment";
 import { fetchAssignmentByIdUser } from "~/services/mst/assignments";
 import { storeFunding } from "~/services/mst/fundings";
+import { useScrollToTop } from "@react-navigation/native";
 
 interface InputPipelineProps {
     segment: string;
@@ -98,7 +99,7 @@ const nama_bulan = [
 
 export default function InputPipeline() {
     const { control, handleSubmit, formState: { errors } } = useForm<InputPipelineProps>();
-    const { user, token } = useAuth();
+    const { state } = useAuth();
     const navigation = useRouter();
 
     const [activeStep, setActiveStep] = useState(0);
@@ -118,7 +119,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchAssignmentByIdUser((user as any).id_user, (token as any).token);
+            const response = await fetchAssignmentByIdUser(state.user.id_user, state.accessToken.token);
 
             if (response.data.code === 200) {
                 setSegments(response.data.data);
@@ -131,7 +132,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusSegment((token as any).token);
+            const response = await fetchStatusSegment(state.accessToken.token);
 
             if (response.data.code === 200) {
                 setStatusSegments(response.data.data.data);
@@ -144,7 +145,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchApplications((token as any).token);
+            const response = await fetchApplications(state.accessToken.token);
 
             if (response.data.code === 200) {
                 setApplications(response.data.data.data);
@@ -157,7 +158,7 @@ export default function InputPipeline() {
 
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(id_application, (token as any).token);
+        const response = await fetchProductByIdApplication(id_application, state.accessToken.token);
 
         if (response.data.code === 200) {
             setProducts(response.data.data);
@@ -168,7 +169,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchSectors((token as any).token);
+            const response = await fetchSectors(state.accessToken.token);
 
             if (response.data.code === 200) {
                 setSectors(response.data.data.data);
@@ -181,7 +182,7 @@ export default function InputPipeline() {
 
     const handleSectorChange = async (item: any) => {
         const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
-        const response = await fetchSubSectorByIdSector(id_sector, (token as any).token);
+        const response = await fetchSubSectorByIdSector(id_sector, state.accessToken.token);
 
         if (response.data.code === 200) {
             setSubSectors(response.data.data);
@@ -192,7 +193,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchProspects((token as any).token);
+            const response = await fetchProspects(state.accessToken.token);
 
             if (response.data.code === 200) {
                 setPipelines(response.data.data.data);
@@ -205,7 +206,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchUserById((user as any).id_user, (token as any).token);
+            const response = await fetchUserById(state.user.id_user, state.accessToken.token);
 
             if (response.data.code === 200) {
                 setApprovals(response.data.data.pemutus);
@@ -227,6 +228,13 @@ export default function InputPipeline() {
     const dataSubSector = subSectors.map((item) => ({ label: item.sub_sektor, value: item.id_sub_sektor }));
     const dataLevelPipeline = pipelines.map((item) => ({ label: item.prospect, value: item.id_prospect }));
     const dataApproval = approvals.map((item) => ({ label: item.nama, value: item.id_user }));
+
+    const ref = useRef<ScrollView>(null);
+    useScrollToTop(
+        useRef({
+            scrollToTop: () => ref.current?.scrollTo({ y: 100 }),
+        })
+    );
 
     const nextStep = (data: InputPipelineProps) => {
         if (activeStep === 0) {
@@ -260,7 +268,7 @@ export default function InputPipeline() {
         }
 
         try {
-            const response = await storeFunding({ token: (token as any).token, DataFunding: dataFunding });
+            const response = await storeFunding({ token: state.accessToken.token, DataFunding: dataFunding });
 
             if (response.data.code === 200) {
                 setLoading(false);
@@ -292,7 +300,7 @@ export default function InputPipeline() {
                     stepCount={2}
                 />
 
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView showsVerticalScrollIndicator={false} ref={ref}>
                     <View style={{ marginTop: 20 }}>
                         {/* STEP 1 */}
                         {activeStep === 0 && (
@@ -360,7 +368,13 @@ export default function InputPipeline() {
                                     <Controller
                                         control={control}
                                         name="nik"
-                                        rules={{ required: "NIK wajib diisi" }}
+                                        rules={{
+                                            required: "NIK wajib diisi",
+                                            pattern: {
+                                                value: /^[0-9]{16}$/,
+                                                message: "NIK tidak valid"
+                                            }
+                                        }}
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <FontAwesome6 name="clipboard-user" size={18} color="#F48120" style={styles.iconInput} />
@@ -772,8 +786,11 @@ export default function InputPipeline() {
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <FontAwesome6 name="circle-check" size={65} color="#9CEF39" style={{ marginBottom: 15 }} />
-                        <Text style={{ fontFamily: "Inter_400Regular" }}>
+                        <Image
+                            source={require("~/assets/icon/ic_success.png")}
+                            style={{ width: 90, height: 90, marginBottom: 20 }}
+                        />
+                        <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>
                             {modalMessage}
                         </Text>
                         <View style={{ marginVertical: 15, borderWidth: .5, borderColor: "#F48120", width: "100%" }}></View>

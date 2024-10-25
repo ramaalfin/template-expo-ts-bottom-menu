@@ -11,13 +11,13 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Topbar from "~/components/TopBar";
 import { Input } from "~/components/ui/input";
 
-export default function PipelineScreen() {
+export default function SpesialRateScreen() {
   const navigation = useRouter();
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
-      <Topbar titleBar="Aktivitas" />
+      <Topbar titleBar="Special Rate" />
       {/* header */}
 
       <View style={styles.container}>
@@ -40,12 +40,13 @@ export default function PipelineScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
+          <View style={styles.specialRateContainer}>
+            <View style={styles.specialRateContent}>
               <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
+                source={require("~/assets/icon/ic_koin_sq.png")}
                 style={{ width: 45, height: 45 }}
               />
+
               <View style={{ width: "90%" }}>
                 <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
                 <Text style={styles.prospectStatus}>Hot Prospect</Text>
@@ -57,103 +58,7 @@ export default function PipelineScreen() {
             <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
               <TouchableOpacity
                 style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
+              // onPress={() => navigation.push('/(special-rate)/detail/1' as Href<'/(special-rate)/detail/1'>)}
               >
                 <Text style={styles.textShare}>
                   Lihat Detail
@@ -172,7 +77,7 @@ export default function PipelineScreen() {
 
       <TouchableOpacity
         onPress={() => navigation.push(
-          `/(pipelines)/add` as Href<"/(pipelines)/add">
+          `/(special-rate)/add` as Href<"/(special-rate)/add">
         )}
 
         style={styles.addContainer}
@@ -199,7 +104,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     paddingTop: 15,
   },
-  pipelineContainer: {
+  specialRateContainer: {
     borderRadius: 20,
     backgroundColor: "#fff",
     padding: 10,
@@ -214,7 +119,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 10,
   },
-  pipelineContent: {
+  specialRateContent: {
     flexDirection: "row",
     gap: 10,
   },

@@ -1,25 +1,7 @@
-import Svg, { Path } from "react-native-svg";
+import { Image } from "react-native";
 
 export const HomeIconInactive = ({ width, height }: any) => {
   return (
-    <>
-      <Svg
-        width={width}
-        height={height}
-        viewBox={`0 0 ${width} ${height}`}
-        fill="none"
-      >
-        <Path
-          d="M13.0959 1L1.36499 10.124V24.4618C1.36499 25.9015 2.53212 27.0687 3.97185 27.0687H22.2199C23.6596 27.0687 24.8268 25.9015 24.8268 24.4618V10.124L13.0959 1ZM13.0959 0C13.3126 0 13.5293 0.0702171 13.7098 0.210651L25.4407 9.33468C25.6843 9.52413 25.8268 9.81544 25.8268 10.124V24.4618C25.8268 26.4506 24.2087 28.0687 22.2199 28.0687H3.97185C1.98302 28.0687 0.36499 26.4506 0.36499 24.4618V10.124C0.36499 9.81544 0.50746 9.52413 0.751051 9.33468L12.4819 0.210651C12.6625 0.0702171 12.8792 0 13.0959 0Z"
-          fill="#707070"
-        />
-        <Path
-          d="M9.18597 27.0681V14.0341H17.007V27.0681"
-          stroke="#707070"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </Svg>
-    </>
+    <Image source={require("../icon/ic_beranda.png")} style={{ width, height }} />
   );
 };

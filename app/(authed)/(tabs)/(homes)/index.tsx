@@ -60,7 +60,7 @@ export default function HomeScreen() {
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Image
                   resizeMode="cover"
-                  source={require("~/assets/icon/double-check-icon.png")}
+                  source={require("~/assets/icon/ic_ceklis.png")}
                   style={{ width: 50, height: 50 }}
                 />
                 <Text style={styles.progressTitleText}>
@@ -130,7 +130,7 @@ export default function HomeScreen() {
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Image
                   resizeMode="cover"
-                  source={require("~/assets/icon/double-check-icon.png")}
+                  source={require("~/assets/icon/ic_jam.png")}
                   style={{ width: 50, height: 50 }}
                 />
                 <Text style={styles.progressTitleText}>Pending Aktivitas</Text>
@@ -146,7 +146,7 @@ export default function HomeScreen() {
                 </View>
               </View>
 
-              <Progress.Bar progress={0.5} width={240} color="#9CEF39" style={{ marginTop: 15 }} />
+              <Progress.Bar progress={0.5} width={240} color="#9A3EEC" style={{ marginTop: 15 }} />
 
               <View
                 style={{
@@ -230,19 +230,10 @@ export default function HomeScreen() {
               `/update/1` as Href<"/update/1">
             )}
           >
-            <View
-              style={{
-                backgroundColor: "#FEBC08",
-                borderRadius: 20,
-                padding: 8,
-              }}
-            >
-              <MaterialIcons
-                name="notifications-active"
-                size={15}
-                color="#FFFFFF"
-              />
-            </View>
+            <Image
+              source={require("~/assets/icon/ic_notif_kuning.png")}
+              style={{ width: 30, height: 30 }}
+            />
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>08.00 Meeting Client #1</Text>
 
@@ -268,19 +259,10 @@ export default function HomeScreen() {
               `/update/1` as Href<"/update/1">
             )}
           >
-            <View
-              style={{
-                backgroundColor: "#E84F37",
-                borderRadius: 20,
-                padding: 8,
-              }}
-            >
-              <MaterialIcons
-                name="notifications-active"
-                size={15}
-                color="#FFFFFF"
-              />
-            </View>
+            <Image
+              source={require("~/assets/icon/ic_notif_kuning.png")}
+              style={{ width: 30, height: 30 }}
+            />
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>11.00 Konfirmasi Rekening</Text>
 
@@ -305,19 +287,10 @@ export default function HomeScreen() {
             onPress={() => navigation.push(
               `/update/1` as Href<"/update/1">
             )}>
-            <View
-              style={{
-                backgroundColor: "#01979E",
-                borderRadius: 20,
-                padding: 8,
-              }}
-            >
-              <MaterialIcons
-                name="notifications-active"
-                size={15}
-                color="#FFFFFF"
-              />
-            </View>
+            <Image
+              source={require("~/assets/icon/ic_notif_kuning.png")}
+              style={{ width: 30, height: 30 }}
+            />
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>12.00 Launch Bareng Client #3</Text>
 
@@ -342,19 +315,10 @@ export default function HomeScreen() {
             onPress={() => navigation.push(
               `/update/1` as Href<"/update/1">
             )}>
-            <View
-              style={{
-                backgroundColor: "#437BE9",
-                borderRadius: 20,
-                padding: 8,
-              }}
-            >
-              <MaterialIcons
-                name="notifications-active"
-                size={15}
-                color="#FFFFFF"
-              />
-            </View>
+            <Image
+              source={require("~/assets/icon/ic_notif_kuning.png")}
+              style={{ width: 30, height: 30 }}
+            />
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>14.00 Survey Agunan Client #2</Text>
 
@@ -379,19 +343,10 @@ export default function HomeScreen() {
             onPress={() => navigation.push(
               `/update/1` as Href<"/update/1">
             )}>
-            <View
-              style={{
-                backgroundColor: "#E84F37",
-                borderRadius: 20,
-                padding: 8,
-              }}
-            >
-              <MaterialIcons
-                name="notifications-active"
-                size={15}
-                color="#FFFFFF"
-              />
-            </View>
+            <Image
+              source={require("~/assets/icon/ic_notif_kuning.png")}
+              style={{ width: 30, height: 30 }}
+            />
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>16.00 Meeting Client #4</Text>
 
@@ -416,19 +371,10 @@ export default function HomeScreen() {
             onPress={() => navigation.push(
               `/update/1` as Href<"/update/1">
             )}>
-            <View
-              style={{
-                backgroundColor: "#E84F37",
-                borderRadius: 20,
-                padding: 8,
-              }}
-            >
-              <MaterialIcons
-                name="notifications-active"
-                size={15}
-                color="#FFFFFF"
-              />
-            </View>
+            <Image
+              source={require("~/assets/icon/ic_notif_kuning.png")}
+              style={{ width: 30, height: 30 }}
+            />
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>16.00 Meeting Client #4</Text>
 

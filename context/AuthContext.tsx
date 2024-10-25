@@ -3,16 +3,14 @@ import React, { createContext, useState, useEffect, useContext } from "react";
 // storage
 import * as SecureStore from 'expo-secure-store';
 import { Href, useRouter } from "expo-router";
-import { loginUser, logoutUser } from "~/services/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type AuthContextType = {
     isAuthenticated: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-    user: object | null;
-    token: string | null;
-    isLoading: boolean;
-    errorMessage: string | null;
+    state: {
+        user: any
+        accessToken: any
+    };
 };
 
 // context
@@ -28,14 +26,25 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [state, setState] = useState<{
+        user: string | null;
+        accessToken: string | null;
+    }>({
+        user: null,
+        accessToken: null,
+    });
     const router = useRouter();
 
     useEffect(() => {
         const checkAuthStatus = async () => {
+            const user = await SecureStore.getItemAsync("user");
             const token = await SecureStore.getItemAsync("accessToken");
+
             if (token) {
+                setState({
+                    user: user ? JSON.parse(user) : null,
+                    accessToken: token ? JSON.parse(token) : null,
+                });
                 setIsAuthenticated(true);
                 router.replace('/(homes)' as Href);
             } else {
@@ -45,82 +54,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         checkAuthStatus();
     }, []);
 
-    const login = async (email: string, password: string) => {
-        setIsLoading(true);
-        try {
-            const response = await loginUser({ email, password });
-
-            if (response.code === 200) {
-                const user = JSON.stringify(response.data.user);
-                const accessToken = JSON.stringify(response.data.tokens.access);
-                await SecureStore.setItemAsync("accessToken", accessToken);
-                await SecureStore.setItemAsync("user", user);
-
-                setIsAuthenticated(true);
-                setErrorMessage(null);
-                router.replace('/(homes)' as Href);
-            } else {
-                setErrorMessage(response?.message);
-            }
-        } catch (error) {
-            setErrorMessage("Login failed");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const logout = async () => {
-        setIsLoading(true);
-        try {
-            const accessToken = await SecureStore.getItemAsync("accessToken");
-
-            if (accessToken) {
-                await logoutUser(accessToken);
-                await SecureStore.deleteItemAsync("accessToken");
-                await SecureStore.deleteItemAsync("user");
-                setIsAuthenticated(false);
-                setErrorMessage(null);
-                router.replace('/login' as Href);
-            }
-        } catch (error) {
-            setErrorMessage("Logout failed");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const [token, setToken] = useState<string | null>(null);
-    const [user, setUser] = useState<object | null>(null);
-
-    useEffect(() => {
-        const fetchToken = async () => {
-            const storedToken = await SecureStore.getItemAsync("accessToken");
-            setToken(storedToken ? JSON.parse(storedToken) : null);
-        };
-        fetchToken();
-    }, []);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            const storedUser = await SecureStore.getItemAsync("user");
-            setUser(storedUser ? JSON.parse(storedUser) : null);
-        };
-        fetchUser();
-    }, []);
-
-    useEffect(() => {
-        if (errorMessage) {
-            const timer = setTimeout(() => {
-                setErrorMessage(null);
-                setIsLoading(false);
-            }, 1000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [errorMessage]);
-
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout, user, token, errorMessage, isLoading }}>
+        <AuthContext.Provider value={{ isAuthenticated, state }}>
             {children}
         </AuthContext.Provider>
     );

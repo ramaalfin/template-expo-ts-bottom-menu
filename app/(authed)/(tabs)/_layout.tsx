@@ -12,6 +12,8 @@ import { AktivitasIconActive } from "~/assets/menu/AktivitasIconActive";
 import { AktivitasIconInactive } from "~/assets/menu/AktivitasIconInactive";
 import { PipelineIconActive } from "~/assets/menu/PipelineIconActive";
 import { PipelineIconInactive } from "~/assets/menu/PipelineIconInactive";
+import { SpecialRateIconActive } from "~/assets/menu/SpecialRateIconActive";
+import { SpecialRateIconInactive } from "~/assets/menu/SpecialRateIconInactive";
 
 export default function TabLayout() {
   return (
@@ -35,11 +37,28 @@ export default function TabLayout() {
           title: "Pipeline",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <>
-                <PipelineIconActive width={34} height={27} />
-              </>
+              <PipelineIconActive width={35} height={27} />
             ) : (
-              <PipelineIconInactive width={34} height={27} />
+              <PipelineIconInactive width={35} height={27} />
+            ),
+          tabBarIconStyle: {
+            marginLeft: -15
+          },
+          tabBarLabelStyle: {
+            marginLeft: -15
+          },
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="(special-rate)"
+        options={{
+          title: "Special Rate",
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <SpecialRateIconActive width={35} height={27} />
+            ) : (
+              <SpecialRateIconInactive width={35} height={27} />
             ),
           headerShown: false,
         }}
@@ -50,10 +69,16 @@ export default function TabLayout() {
           title: "Aktivitas",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <AktivitasIconActive width={34} height={28} />
+              <AktivitasIconActive width={35} height={28} />
             ) : (
-              <AktivitasIconInactive width={34} height={28} />
+              <AktivitasIconInactive width={35} height={28} />
             ),
+          tabBarIconStyle: {
+            marginRight: -15
+          },
+          tabBarLabelStyle: {
+            marginRight: -15
+          },
           headerShown: false,
         }}
       />

@@ -18,19 +18,19 @@ export default function AboutAppsScreen() {
       <View style={styles.container}>
         <View style={styles.menu}>
           <Image
-            source={require("~/assets/images/profileIcon.png")}
+            source={require("~/assets/icon/icon_login.png")}
             resizeMode="contain"
             style={{ width: 65, height: 65 }}
           />
-          <View style={styles.content}>
+          <View>
             <Text style={styles.titleContent}>
-              Sales Activity Management Application
+              Funding App of Super Team
             </Text>
             <Text style={styles.textContent}>Versi 1.0.0</Text>
           </View>
         </View>
 
-        <Text style={styles.description}>Aplikasi yang berfungsi untuk … </Text>
+        <Text style={styles.description}>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Facere eligendi, aut blanditiis laborum dolores illum? Facere odit quis non doloremque. Magnam accusamus temporibus ipsam autem ipsum eligendi facere facilis voluptates.</Text>
       </View>
     </View>
   );
@@ -48,18 +48,14 @@ const styles = StyleSheet.create({
   menu: {
     gap: 10,
     flexDirection: "row",
-  },
-  content: {
     borderBottomWidth: 0.5,
     borderBottomColor: "#707070",
-    width: wp("60%"),
     paddingBottom: 15,
   },
   titleContent: {
-    color: "#1D4592",
+    color: "#F48120",
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    marginBottom: 10,
+    fontFamily: "Inter_500Medium",
     marginTop: 0,
     width: wp("60%"),
   },

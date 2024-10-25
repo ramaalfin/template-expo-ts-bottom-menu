@@ -4,23 +4,28 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const TabBar = ({ state, descriptors, navigation }) => {
+const TabBar = ({ state, descriptors, navigation }: any) => {
   return (
     <View style={styles.tabBar}>
-      {state.routes.map((route, index) => {
+      {state.routes.map((route: any, index: any) => {
         const { options } = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name;
+              ? options.title
+              : route.name;
 
         const isFocused = state.index === index;
 
         const icon =
           options.tabBarIcon !== undefined
             ? options.tabBarIcon({ focused: isFocused })
+            : null;
+
+        const iconStyle =
+          options.tabBarIconStyle !== undefined
+            ? options.tabBarIconStyle
             : null;
 
         const onPress = () => {
@@ -53,7 +58,11 @@ const TabBar = ({ state, descriptors, navigation }) => {
             onLongPress={onLongPress}
             style={styles.tabBarItem}
           >
-            {icon}
+            {iconStyle ? (
+              <View style={iconStyle}>{icon}</View>
+            ) : (
+              icon
+            )}
 
             <Text
               style={{
@@ -61,6 +70,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
                 marginTop: 5,
                 fontSize: 12,
                 fontFamily: "Inter_400Regular",
+                ...options.tabBarLabelStyle,
               }}
             >
               {label}
@@ -79,6 +89,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
                   shadowOpacity: 0.4,
                   shadowRadius: 10,
                   elevation: 25,
+                  ...options.tabBarLabelStyle
                 }}
               />
             )}
@@ -93,11 +104,9 @@ export default TabBar;
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: hp("10%"),
+    height: hp("9%"),
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingTop: 15,
-    paddingHorizontal: 20,
+    paddingTop: 6,
     backgroundColor: "#fff",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
