@@ -56,7 +56,6 @@ export default function InputSpecialRate() {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [isOpeningDatePickerVisible, setOpeningDatePickerVisibility] = useState(false);
-    const [isClosingDatePickerVisible, setClosingDatePickerVisibility] = useState(false);
 
     const [jangkawaktu, setJangkaWaktu] = useState<any[]>([]);
     const [statusRekening, setstatusRekening] = useState<any[]>([]);
@@ -103,18 +102,11 @@ export default function InputSpecialRate() {
         hideOpeningDatePicker();
     };
 
-    const showClosingDatePicker = () => {
-        setClosingDatePickerVisibility(true);
-    };
-
-    const hideClosingDatePicker = () => {
-        setClosingDatePickerVisibility(false);
-    };
-
-    const handleConfirmClosingDate = (date: any, onChange: any) => {
-        onChange(date);
-        hideClosingDatePicker();
-    };
+    const handleJangkaWaktu = (item: any) => {
+        const openingDate = getValues("tgl_buka");
+        const closingDate = moment(openingDate).add(item.value, "months").format("YYYY-MM-DD");
+        setValue("tgl_jatuh_tempo", closingDate);
+    }
 
     const ref = useRef<ScrollView>(null);
     useScrollToTop(
@@ -264,9 +256,7 @@ export default function InputSpecialRate() {
                                             data={dataJangkaWaktu}
                                             onChange={(item) => {
                                                 onChange(item.value)
-                                                const openingDate = getValues("tgl_buka");
-                                                const closingDate = moment(openingDate).add(item.value, "months").format("YYYY-MM-DD");
-                                                setValue("tgl_jatuh_tempo", closingDate);
+                                                handleJangkaWaktu(item)
                                             }}
                                             value={value}
                                         />
