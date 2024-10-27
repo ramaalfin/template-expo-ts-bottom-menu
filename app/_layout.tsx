@@ -30,13 +30,11 @@ export default function Root() {
   }
 
   return (
-    <>
+    <AuthProvider>
       <SafeAreaView style={{ flex: 1 }}>
         <StatusBar backgroundColor="transparent" barStyle="dark-content" />
-        <AuthProvider>
-          <Slot />
-        </AuthProvider>
+        <Slot />
       </SafeAreaView>
-    </>
+    </AuthProvider>
   );
 }

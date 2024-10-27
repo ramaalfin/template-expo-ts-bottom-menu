@@ -6,12 +6,12 @@ export const fetchUsers = async () => {
   );
 };
 
-export const fetchUserById = async (id: string, token: string) => {
+export const fetchUserById = async (id_user: number, token: string) => {
   const headers = {
     Authorization: `Bearer ${token}`,
   };
   const response = await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/sys/users/${id}`,
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/sys/users/${id_user}`,
     { headers }
   );
 

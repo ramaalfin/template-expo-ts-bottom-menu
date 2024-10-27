@@ -13,47 +13,20 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 // router
 import { useRouter, Href } from "expo-router";
 import Topbar from "~/components/TopBar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "~/context/AuthContext";
-import { logoutUser } from "~/services/auth";
 
 // components
 
 export default function AccountScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const { state } = useAuth();
-  const [loading, setLoading] = useState(false);
-
+  const { user, logout, isLoading } = useAuth();
+  const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
   const navigation = useRouter();
 
-  const logout = async () => {
-    setModalVisible(true);
-    setLoading(true);
-
-    if (state.accessToken.token) {
-      setLoading(false);
-      setModalVisible(false);
-      await SecureStore.deleteItemAsync("accessToken");
-      await SecureStore.deleteItemAsync("user");
-
-      navigation.push("/login" as Href<"/login">);
-    }
-
-    // try {
-    //   const response = await logoutUser({ accessToken: state.accessToken.token });
-
-    //   console.log(response);
-
-    //   if (response.code === 200) {
-    //     setLoading(false);
-    //     setModalVisible(false);
-    //     return navigation.push("/login" as Href<"/login">);
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
-
-  };
+  useEffect(() => {
+    user?.photo ? setPhoto({ uri: user.photo }) : setPhoto(require("~/assets/images/nophoto.jpg"));
+  })
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
@@ -61,13 +34,13 @@ export default function AccountScreen() {
 
       <View style={styles.container}>
         <Image
-          source={require("~/assets/images/nophoto.jpg")}
+          source={photo}
           resizeMode="cover"
           style={styles.photoProfile}
         />
 
-        <Text style={styles.name}>Rahmat Fadilah</Text>
-        <Text style={styles.position}>OPS. KC Cimahi Baros</Text>
+        <Text style={styles.name}>{user?.nama}</Text>
+        {/* <Text style={styles.position}>{user?.jabatan}</Text> */}
 
         <View
           style={{
@@ -103,7 +76,7 @@ export default function AccountScreen() {
               />
 
               <View style={styles.menuItem}>
-                <Text style={styles.menuText}>Tentang Aplikasi</Text>
+                <Text style={styles.text}>Tentang Aplikasi</Text>
 
                 <MaterialIcons
                   name="keyboard-arrow-right"
@@ -124,7 +97,7 @@ export default function AccountScreen() {
                 style={{ width: 25, height: 25 }}
               />
               <View style={styles.menuItem}>
-                <Text style={styles.menuText}>Ganti Password</Text>
+                <Text style={styles.text}>Ganti Password</Text>
 
                 <MaterialIcons
                   name="keyboard-arrow-right"
@@ -141,15 +114,9 @@ export default function AccountScreen() {
               />
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: wp("77%"),
-                  paddingVertical: 9,
-                }}
+                style={styles.btnLogout}
               >
-                <Text style={styles.menuText}>Logout</Text>
+                <Text style={styles.text}>Logout</Text>
 
                 <MaterialIcons
                   name="keyboard-arrow-right"
@@ -186,51 +153,26 @@ export default function AccountScreen() {
                 }}
               >
                 <Pressable
-                  style={{
-                    backgroundColor: "#F48120",
-                    paddingVertical: 8,
-                    paddingHorizontal: 10,
-                    borderRadius: 5,
-                    width: "50%",
-                  }}
+                  style={[styles.btnConfirm, { backgroundColor: "#F48120" }]}
                   onPress={() => setModalVisible(!modalVisible)}
                 >
                   <Text
-                    style={{
-                      fontFamily: "Inter_600SemiBold",
-                      fontSize: 14,
-                      textAlign: "center",
-                      color: "white",
-                    }}
+                    style={styles.cancelText}
                   >
                     Batal
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={{
-                    backgroundColor: "#f5f5f5",
-                    paddingVertical: 8,
-                    paddingHorizontal: 10,
-                    borderRadius: 5,
-                    width: "50%",
-                  }}
+                  style={[styles.btnConfirm, { backgroundColor: "#F5F5F5" }]}
                   onPress={logout}
                 >
-                  {loading ?
-                    <ActivityIndicator color="#F48120" size={20} />
-                    :
-                    <Text
-                      style={{
-                        fontFamily: "Inter_600SemiBold",
-                        fontSize: 14,
-                        textAlign: "center",
-                        color: "#F48120",
-                        justifyContent: "center",
-                      }}
-                    >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#F48120" />
+                  ) : (
+                    <Text style={styles.logoutText}>
                       Keluar
                     </Text>
-                  }
+                  )}
                 </Pressable>
               </View>
             </View>
@@ -272,6 +214,32 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Inter_400Regular",
   },
+  btnLogout: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: wp("77%"),
+    paddingVertical: 9,
+  },
+  btnConfirm: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    width: "50%",
+  },
+  cancelText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    textAlign: "center",
+    color: "white",
+  },
+  logoutText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    textAlign: "center",
+    color: "#F48120",
+    justifyContent: "center",
+  },
   menu: {
     flexDirection: "row",
     alignItems: "center",
@@ -286,7 +254,7 @@ const styles = StyleSheet.create({
     width: wp("77%"),
     paddingVertical: 9,
   },
-  menuText: {
+  text: {
     color: "#707070",
     fontSize: 13,
     fontFamily: "Inter_400Regular",

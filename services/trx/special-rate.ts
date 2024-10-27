@@ -1,20 +1,19 @@
 import axios from "axios";
 
 interface DataSpecialRateProps {
-  no_rekening: number;
+  no_rekening: string;
   nama: string;
-  id_term: string;
+  id_term: number;
   tgl_buka: string;
   tgl_jatuh_tempo: string;
-  nominal: string;
-  nominal_dpk: string;
+  nominal: number;
+  nominal_dpk: number;
   rate_sebelum: number;
   rate_dimohon: number;
   id_sts_rekening: number;
-  id_sts_special_rate: number;
 }
 
-export const storeSpecialRate = async ({
+export const createSpecialRate = async ({
   token,
   data,
 }: {

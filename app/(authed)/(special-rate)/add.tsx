@@ -25,7 +25,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 // services
-import { storeSpecialRate } from "~/services/trx/special-rate";
+import { createSpecialRate } from "~/services/trx/special-rate";
 import { fetchTerms } from "~/services/mst/terms";
 
 // utils
@@ -35,34 +35,36 @@ import { useScrollToTop } from "@react-navigation/native";
 import { fetchStatusRekening } from "~/services/mst/sts-rekening";
 
 interface InputSpecialRateProps {
-    no_rekening: number;
+    no_rekening: string;
     nama_lengkap: string;
     id_term: string;
     tgl_buka: string;
     tgl_jatuh_tempo: string;
     nominal: string;
     nominal_dpk: string;
-    rate_sebelum: number;
-    rate_dimohon: number;
-    id_sts_rekening: number;
+    rate_sebelum: string;
+    rate_dimohon: string;
+    id_sts_rekening: string;
 };
 
 export default function InputSpecialRate() {
     const { control, handleSubmit, formState: { errors }, getValues, setValue } = useForm<InputSpecialRateProps>();
     const navigation = useRouter();
-    const { state } = useAuth();
+    const { accessToken, isLoading } = useAuth();
 
-    const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [isOpeningDatePickerVisible, setOpeningDatePickerVisibility] = useState(false);
 
     const [jangkawaktu, setJangkaWaktu] = useState<any[]>([]);
     const [statusRekening, setstatusRekening] = useState<any[]>([]);
+    const [tglJatuhTempo, setTglJatuhTempo] = useState("");
+
+    const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchTerms(state.accessToken.token);
+            const response = await fetchTerms(accessToken.token);
 
             if (response.data.code === 200) {
                 setJangkaWaktu(response.data.data.data);
@@ -75,7 +77,7 @@ export default function InputSpecialRate() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusRekening(state.accessToken.token);
+            const response = await fetchStatusRekening(accessToken.token);
 
             if (response.data.code === 200) {
                 setstatusRekening(response.data.data.data);
@@ -106,6 +108,7 @@ export default function InputSpecialRate() {
         const openingDate = getValues("tgl_buka");
         const closingDate = moment(openingDate).add(item.value, "months").format("YYYY-MM-DD");
         setValue("tgl_jatuh_tempo", closingDate);
+        setTglJatuhTempo(closingDate);
     }
 
     const ref = useRef<ScrollView>(null);
@@ -116,38 +119,35 @@ export default function InputSpecialRate() {
     );
 
     const submit = async (data: InputSpecialRateProps) => {
-        setLoading(true);
-
         const formData = {
             no_rekening: data.no_rekening,
             nama: data.nama_lengkap,
-            id_term: data.id_term,
+            id_term: Number(data.id_term),
             tgl_buka: data.tgl_buka,
-            tgl_jatuh_tempo: data.tgl_jatuh_tempo,
-            nominal: data.nominal.replace(/\D/g, ""),
-            nominal_dpk: data.nominal_dpk.replace(/\D/g, ""),
-            rate_sebelum: data.rate_sebelum,
-            rate_dimohon: data.rate_dimohon,
-            id_sts_rekening: data.id_sts_rekening,
-            id_sts_special_rate: 1
+            tgl_jatuh_tempo: tglJatuhTempo,
+            nominal: Number(data.nominal.replace(/\D/g, "")),
+            nominal_dpk: Number(data.nominal_dpk.replace(/\D/g, "")),
+            rate_sebelum: Number(data.rate_sebelum.replace(",", ".")),
+            rate_dimohon: Number(data.rate_dimohon.replace(",", ".")),
+            id_sts_rekening: Number(data.id_sts_rekening),
         };
 
         try {
-            const response = await storeSpecialRate({ token: state.accessToken.token, data: formData });
+            const response = await createSpecialRate({ token: accessToken.token, data: formData });
 
             if (response.data.code === 200) {
-                setLoading(false);
                 setModalVisible(true);
                 setModalMessage("Input Data Berhasil");
+                setIsSuccess(true);
             } else {
-                setLoading(false);
                 setModalVisible(true);
                 setModalMessage("Input Data Gagal");
+                setIsSuccess(false);
             }
         } catch (error) {
-            setLoading(false);
             setModalVisible(true);
             setModalMessage("Input Data Gagal");
+            setIsSuccess(false);
         }
     };
 
@@ -165,13 +165,20 @@ export default function InputSpecialRate() {
                             <Controller
                                 control={control}
                                 name="no_rekening"
-                                rules={{ required: "No Rekening wajib diisi" }}
+                                rules={{
+                                    required: "No Rekening wajib diisi",
+                                    validate: (value) => {
+                                        if (value.length <= 14) {
+                                            return "No Rekening harus 14 karakter";
+                                        }
+                                    }
+                                }}
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <View style={{ position: "relative" }}>
                                         <MaterialIcons name="payment" size={18} color="#F48120" style={styles.iconInput} />
                                         <Input
                                             onBlur={onBlur}
-                                            onChangeText={onChange}
+                                            onChangeText={(val) => onChange(val.replace(/\D/g, "").trim().slice(0, 15))}
                                             value={value?.toString()}
                                             style={styles.input}
                                             inputMode="numeric"
@@ -273,7 +280,7 @@ export default function InputSpecialRate() {
                                 control={control}
                                 name="tgl_jatuh_tempo"
                                 rules={{ required: "Tanggal Jatuh Tempo wajib diisi" }}
-                                render={({ field: { value } }) => (
+                                render={({ field: { onChange, value } }) => (
                                     <>
                                         <View style={{ position: "relative" }}>
                                             <View style={styles.dateInput}>
@@ -284,14 +291,14 @@ export default function InputSpecialRate() {
                                             </View>
                                         </View>
 
-                                        {/* <DateTimePickerModal
-                                            isVisible={isClosingDatePickerVisible}
+                                        <DateTimePickerModal
                                             mode="date"
-                                            onConfirm={(date) => handleConfirmClosingDate(moment(date).format("YYYY-MM-DD"), onChange)}
-                                            onCancel={hideClosingDatePicker}
                                             date={value ? moment(value).toDate() : new Date()}
                                             locale="id-ID"
-                                        /> */}
+                                            isVisible={false}
+                                            onConfirm={() => onChange(value)}
+                                            onCancel={() => { }}
+                                        />
                                     </>
                                 )}
                             />
@@ -384,7 +391,7 @@ export default function InputSpecialRate() {
                                         <Input
                                             onBlur={onBlur}
                                             onChangeText={onChange}
-                                            value={value?.toString()}
+                                            value={value}
                                             style={[styles.input, { paddingLeft: 35 }]}
                                             inputMode="numeric"
                                         />
@@ -407,7 +414,7 @@ export default function InputSpecialRate() {
                                         <Input
                                             onBlur={onBlur}
                                             onChangeText={onChange}
-                                            value={value?.toString()}
+                                            value={value}
                                             style={[styles.input, { paddingLeft: 35 }]}
                                             inputMode="numeric"
                                         />
@@ -439,7 +446,7 @@ export default function InputSpecialRate() {
                                             placeholder="Pilih"
                                             data={dataStatusRekening}
                                             onChange={(item) => onChange(item.value)}
-                                            value={value?.toString()}
+                                            value={value}
                                         />
                                     </View>
                                 )}
@@ -459,7 +466,7 @@ export default function InputSpecialRate() {
                                 style={[styles.btnItem, { backgroundColor: "#F48120", borderColor: "#F48120" }]}
                                 onPress={handleSubmit(submit)}
                             >
-                                {loading ?
+                                {isLoading ?
                                     <ActivityIndicator size="small" color="#FFF" />
                                     :
                                     <Text style={[styles.btnText, { color: "#FFF" }]}>Kirim</Text>
@@ -481,7 +488,7 @@ export default function InputSpecialRate() {
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
                         <Image
-                            source={require("~/assets/icon/ic_success.png")}
+                            source={isSuccess ? require("~/assets/icon/ic_success.png") : require("~/assets/icon/ic_failed.png")}
                             style={{ width: 90, height: 90, marginBottom: 20 }}
                         />
                         <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>

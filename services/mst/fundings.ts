@@ -15,13 +15,13 @@ interface DataFundingProps {
   id_checker: string;
 }
 
-export const fetchAllFunding = async (token: string) => {
+export const fetchFundingByIdUser = async (id_user: number, token: string) => {
   const headers = {
     Authorization: `Bearer ${token}`,
   };
 
   return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/all`,
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/user/${id_user}`,
     {
       headers,
     }

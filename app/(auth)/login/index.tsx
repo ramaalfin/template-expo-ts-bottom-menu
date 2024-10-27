@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -24,9 +24,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
 } from "react-native";
-import { loginUser } from "~/services/auth";
-import { Href, useRouter } from "expo-router";
-
+import { useAuth } from "~/context/AuthContext";
 
 type LoginProps = {
     email: string;
@@ -36,36 +34,18 @@ type LoginProps = {
 export default function Login() {
     const { control, handleSubmit, formState: { errors } } = useForm<LoginProps>();
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-    const navigation = useRouter();
+    const { login, isLoading } = useAuth();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
     const submit = async ({ email, password }: LoginProps) => {
-        setLoading(true);
         try {
-            const response = await loginUser({ email, password });
-
-            if (response.code === 200) {
-                const user = JSON.stringify(response.data.user);
-                const accessToken = JSON.stringify(response.data.tokens.access);
-
-                await SecureStore.setItemAsync("accessToken", accessToken);
-                await SecureStore.setItemAsync("user", user);
-
-                navigation.replace("/(homes)" as Href);
-                setErrorMessage(null);
-            } else {
-                setErrorMessage(response?.message);
-            }
+            await login(email, password);
         } catch (error) {
-            setErrorMessage("Login failed");
-        } finally {
-            setLoading(false);
+            setErrorMessage("Terjadi kesalahan, silahkan coba lagi");
         }
     };
 
@@ -198,9 +178,9 @@ export default function Login() {
                     <TouchableOpacity
                         onPress={handleSubmit(submit)}
                         style={styles.btnLogin}
-                        disabled={loading}
+                        disabled={isLoading}
                     >
-                        {loading ? (
+                        {isLoading ? (
                             <ActivityIndicator color="white" size={20} />
                         ) : (
                             <Text style={{ color: "white", fontFamily: "Inter_500Medium" }}>Masuk</Text>

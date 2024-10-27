@@ -99,12 +99,11 @@ const nama_bulan = [
 
 export default function InputPipeline() {
     const { control, handleSubmit, formState: { errors } } = useForm<InputPipelineProps>();
-    const { state } = useAuth();
+    const { accessToken, isLoading, user } = useAuth();
     const navigation = useRouter();
 
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<InputPipelineProps>();
-    const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
 
@@ -117,9 +116,11 @@ export default function InputPipeline() {
     const [pipelines, setPipelines] = useState<any[]>([]);
     const [approvals, setApprovals] = useState<any[]>([]);
 
+    const [isSuccess, setIsSuccess] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchAssignmentByIdUser(state.user.id_user, state.accessToken.token);
+            const response = await fetchAssignmentByIdUser(user?.id_user, accessToken?.token);
 
             if (response.data.code === 200) {
                 setSegments(response.data.data);
@@ -132,7 +133,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusSegment(state.accessToken.token);
+            const response = await fetchStatusSegment(accessToken?.token);
 
             if (response.data.code === 200) {
                 setStatusSegments(response.data.data.data);
@@ -145,7 +146,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchApplications(state.accessToken.token);
+            const response = await fetchApplications(accessToken?.token);
 
             if (response.data.code === 200) {
                 setApplications(response.data.data.data);
@@ -158,7 +159,7 @@ export default function InputPipeline() {
 
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(id_application, state.accessToken.token);
+        const response = await fetchProductByIdApplication(id_application, accessToken?.token);
 
         if (response.data.code === 200) {
             setProducts(response.data.data);
@@ -169,7 +170,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchSectors(state.accessToken.token);
+            const response = await fetchSectors(accessToken?.token);
 
             if (response.data.code === 200) {
                 setSectors(response.data.data.data);
@@ -182,7 +183,7 @@ export default function InputPipeline() {
 
     const handleSectorChange = async (item: any) => {
         const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
-        const response = await fetchSubSectorByIdSector(id_sector, state.accessToken.token);
+        const response = await fetchSubSectorByIdSector(id_sector, accessToken?.token);
 
         if (response.data.code === 200) {
             setSubSectors(response.data.data);
@@ -193,7 +194,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchProspects(state.accessToken.token);
+            const response = await fetchProspects(accessToken?.token);
 
             if (response.data.code === 200) {
                 setPipelines(response.data.data.data);
@@ -206,7 +207,7 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchUserById(state.user.id_user, state.accessToken.token);
+            const response = await fetchUserById(user?.id_user, accessToken?.token);
 
             if (response.data.code === 200) {
                 setApprovals(response.data.data.pemutus);
@@ -250,7 +251,6 @@ export default function InputPipeline() {
     }
 
     const finalSubmit = async (data: InputPipelineProps) => {
-        setLoading(true);
         const allData = { ...formData, ...data };
 
         const dataFunding = {
@@ -268,21 +268,21 @@ export default function InputPipeline() {
         }
 
         try {
-            const response = await storeFunding({ token: state.accessToken.token, DataFunding: dataFunding });
+            const response = await storeFunding({ token: accessToken?.token, DataFunding: dataFunding });
 
             if (response.data.code === 200) {
-                setLoading(false);
                 setModalVisible(true);
                 setModalMessage("Input Data Berhasil");
+                setIsSuccess(true);
             } else {
-                setLoading(false);
                 setModalVisible(true);
                 setModalMessage("Input Data Gagal");
+                setIsSuccess(false);
             }
         } catch (error) {
-            setLoading(false);
             setModalVisible(true);
             setModalMessage("Input Data Gagal");
+            setIsSuccess(false);
         }
     };
 
@@ -763,7 +763,7 @@ export default function InputPipeline() {
                                         style={[styles.btnItem, { backgroundColor: "#F48120", borderColor: "#F48120" }]}
                                         onPress={handleSubmit(finalSubmit)}
                                     >
-                                        {loading ? (
+                                        {isLoading ? (
                                             <ActivityIndicator size="small" color="#FFF" />
                                         ) : (
                                             <Text style={[styles.btnText, { color: "#FFF" }]}>Kirim</Text>
@@ -787,7 +787,7 @@ export default function InputPipeline() {
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
                         <Image
-                            source={require("~/assets/icon/ic_success.png")}
+                            source={isSuccess ? require("~/assets/icon/ic_success.png") : require("~/assets/icon/ic_failed.png")}
                             style={{ width: 90, height: 90, marginBottom: 20 }}
                         />
                         <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>

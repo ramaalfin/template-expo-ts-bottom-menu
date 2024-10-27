@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -22,16 +22,17 @@ import { formatDate } from "~/utils/formatDate";
 import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { fetchAllFunding } from "~/services/mst/fundings";
+import { fetchFundingByIdUser } from "~/services/mst/fundings";
 import { useAuth } from "~/context/AuthContext";
 import { fetchKegiatan } from "~/services/mst/kegiatan";
 import { fetchStatusPipeline } from "~/services/mst/sts-pipeline";
 import { useLocation } from "~/hooks/useLocation";
+import { createActivity } from "~/services/trx/activity";
 
 interface AddActivityProps {
     id_funding: string;
     id_kegiatan: string;
-    id_hasil: string;
+    id_sts_pipeline: string;
     tanggal: string;
     jam_mulai: string;
     jam_selesai: string;
@@ -42,11 +43,10 @@ interface AddActivityProps {
 
 export default function AddActivity() {
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<AddActivityProps>();
-    const { state } = useAuth();
-    const { longitude, latitude, errorMessage } = useLocation();
+    const { accessToken, isLoading, user } = useAuth();
+    const { longitude, latitude } = useLocation();
     const navigation = useRouter();
     const isEditable = false;
-    const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
 
@@ -60,9 +60,11 @@ export default function AddActivity() {
     const [isJamMulaiPickerVisible, setJamMulaiPickerVisibility] = useState(false);
     const [isJamSelesaiPickerVisible, setJamSelesaiPickerVisibility] = useState(false);
 
+    const [isSuccess, setIsSuccess] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchAllFunding(state.accessToken.token);
+            const response = await fetchFundingByIdUser(user.id_user, accessToken.token);
 
             if (response.data.code === 200) {
                 setClients(response.data.data);
@@ -88,7 +90,7 @@ export default function AddActivity() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchKegiatan(state.accessToken.token);
+            const response = await fetchKegiatan(accessToken.token);
 
             if (response.data.code === 200) {
                 setKegiatan(response.data.data.data);
@@ -102,7 +104,7 @@ export default function AddActivity() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusPipeline(state.accessToken.token);
+            const response = await fetchStatusPipeline(accessToken.token);
 
             if (response.data.code === 200) {
                 setStatusPipeline(response.data.data.data);
@@ -160,10 +162,39 @@ export default function AddActivity() {
         hideJamSelesaiPicker();
     }
 
-    const submit = (data: AddActivityProps) => {
-        setLoading(true);
+    const submit = async (data: AddActivityProps) => {
+        const jamMulai = `${data.tanggal} ${data.jam_mulai}`;
+        const jamSelesai = `${data.tanggal} ${data.jam_selesai}`;
 
-        console.log(data);
+        const formData = {
+            id_funding: Number(data.id_funding),
+            id_kegiatan: Number(data.id_kegiatan),
+            id_sts_pipeline: Number(data.id_sts_pipeline),
+            tanggal: data.tanggal,
+            jam_mulai: jamMulai,
+            jam_selesai: jamSelesai,
+            deskripsi: data.deskripsi,
+            latitude: latitude ? latitude.toString() : "",
+            longtitude: longitude ? longitude.toString() : "",
+        }
+
+        try {
+            const response = await createActivity({ token: accessToken.token, data: formData });
+
+            if (response.data.code === 200) {
+                setModalMessage("Input Data Berhasil");
+                setModalVisible(true);
+                setIsSuccess(true);
+            } else {
+                setModalMessage("Input Data Gagal");
+                setModalVisible(true);
+                setIsSuccess(false);
+            }
+        } catch (error) {
+            setModalVisible(true);
+            setModalMessage("Input Data Gagal");
+            setIsSuccess(false);
+        }
     }
 
     return (
@@ -244,8 +275,10 @@ export default function AddActivity() {
                                             valueField="value"
                                             placeholder="Pilih"
                                             data={dataKegiatan}
-                                            onChange={onChange}
                                             value={value}
+                                            onChange={(item) => {
+                                                onChange(item.value);
+                                            }}
                                         />
                                     </View>
                                 )}
@@ -257,7 +290,7 @@ export default function AddActivity() {
                             <Text style={styles.formLabel}>Status Pipeline</Text>
                             <Controller
                                 control={control}
-                                name="id_hasil"
+                                name="id_sts_pipeline"
                                 rules={{ required: "Kegiatan wajib diisi" }}
                                 render={({ field: { onChange, value } }) => (
                                     <View style={{ position: "relative" }}>
@@ -273,13 +306,16 @@ export default function AddActivity() {
                                             valueField="value"
                                             placeholder="Pilih"
                                             data={dataStatusPipeline}
-                                            onChange={onChange}
                                             value={value}
+                                            onChange={(item) => {
+                                                handleClientChange(item);
+                                                onChange(item.value);
+                                            }}
                                         />
                                     </View>
                                 )}
                             />
-                            {errors.id_hasil && <Text style={styles.errorField}>{errors.id_hasil.message}</Text>}
+                            {errors.id_sts_pipeline && <Text style={styles.errorField}>{errors.id_sts_pipeline.message}</Text>}
                         </View>
 
                         <View style={styles.formItem}>
@@ -334,11 +370,10 @@ export default function AddActivity() {
                                         <DateTimePickerModal
                                             mode="time"
                                             isVisible={isJamMulaiPickerVisible}
-                                            onConfirm={(time) => handleConfirmJamMulai(time, onChange)}
+                                            onConfirm={(time) => handleConfirmJamMulai(moment(time), onChange)}
                                             onCancel={hideJamMulaiPicker}
                                             onChange={onChange}
                                             date={value ? moment(value, "HH:mm").toDate() : new Date()}
-                                            locale="id-ID"
                                         />
                                     </>
                                 )}
@@ -355,8 +390,15 @@ export default function AddActivity() {
                                 rules={{
                                     required: "Jam Selesai wajib diisi",
                                     validate: (value) => {
-                                        if (value < getValues("jam_mulai")) {
-                                            return "Jam Selesai harus lebih besar dari Jam Mulai";
+                                        const jamMulai = moment(getValues("jam_mulai"), "HH:mm");
+                                        const jamSelesai = moment(value, "HH:mm");
+
+                                        if (jamSelesai.add(1, "day").isBefore(jamMulai)) {
+                                            return "Jam Selesai tidak boleh lebih kecil dari Jam Mulai";
+                                        } else if (jamSelesai.isSame(jamMulai)) {
+                                            return "Jam Selesai tidak boleh sama dengan Jam Mulai";
+                                        } else {
+                                            return true;
                                         }
                                     }
                                 }}
@@ -378,7 +420,6 @@ export default function AddActivity() {
                                             onCancel={hideJamSelesaiPicker}
                                             onChange={onChange}
                                             date={value ? moment(value, "HH:mm").toDate() : new Date()}
-                                            locale="id-ID"
                                         />
                                     </>
                                 )}
@@ -421,12 +462,58 @@ export default function AddActivity() {
                                 style={[styles.btnItem, { backgroundColor: "#F48120", borderColor: "#F48120" }]}
                                 onPress={handleSubmit(submit)}
                             >
-                                <Text style={[styles.btnText, { color: "#FFF" }]}>Simpan</Text>
+                                {isLoading ? (
+                                    <ActivityIndicator size="small" color="#FFF" />
+                                ) : (
+                                    <Text style={[styles.btnText, { color: "#FFF" }]}>Simpan</Text>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
                 </ScrollView>
             </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Image
+                            source={isSuccess ? require("~/assets/icon/ic_success.png") : require("~/assets/icon/ic_failed.png")}
+                            style={{ width: 90, height: 90, marginBottom: 20 }}
+                        />
+                        <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>
+                            {modalMessage}
+                        </Text>
+                        <View style={{ marginVertical: 15, borderWidth: .5, borderColor: "#F48120", width: "100%" }}></View>
+                        <Pressable
+                            style={{
+                                paddingHorizontal: 10,
+                                borderRadius: 5,
+                            }}
+                            onPress={() => { setModalVisible(!modalVisible); navigation.back() }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: "Inter_600SemiBold",
+                                    fontSize: 14,
+                                    textAlign: "center",
+                                    color: "#F48120",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                Tutup
+                            </Text>
+
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </View >
     )
 }
@@ -557,5 +644,28 @@ const styles = StyleSheet.create({
     btnText: {
         fontSize: 14,
         fontFamily: "Inter_400Regular",
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+
+    modalView: {
+        width: '60%',
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
 });
