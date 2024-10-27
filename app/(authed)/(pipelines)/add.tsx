@@ -264,6 +264,7 @@ export default function InputPipeline() {
             no_telp: allData.telepon,
             email: allData.email,
             target: Number(allData.potensi_dana.replace(/\./g, '')),
+            keterangan: allData.keterangan,
             id_checker: allData.approval,
         }
 

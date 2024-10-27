@@ -12,6 +12,7 @@ interface DataFundingProps {
   no_telp: string;
   email: string;
   target: number;
+  keterangan: string;
   id_checker: string;
 }
 
