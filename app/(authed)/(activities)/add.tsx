@@ -8,6 +8,7 @@ import {
 } from "react-native-responsive-screen";
 
 import moment from "moment";
+import 'moment-timezone';
 import { useRouter } from "expo-router";
 
 // icons
@@ -46,7 +47,6 @@ export default function AddActivity() {
     const { accessToken, isLoading, user } = useAuth();
     const { longitude, latitude } = useLocation();
     const navigation = useRouter();
-    const isEditable = false;
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
 
@@ -131,7 +131,7 @@ export default function AddActivity() {
         setDatePickerVisibility(false);
     };
 
-    const handleConfirmDate = (date: any, onChange: any) => {
+    const handleConfirmDate = (date: string, onChange: any) => {
         onChange(date);
         hideDatePicker();
     };
@@ -144,7 +144,7 @@ export default function AddActivity() {
         setJamMulaiPickerVisibility(false);
     }
 
-    const handleConfirmJamMulai = (time: any, onChange: any) => {
+    const handleConfirmJamMulai = (time: Date, onChange: any) => {
         onChange(moment(time).format("HH:mm"));
         hideJamMulaiPicker();
     }
@@ -157,22 +157,19 @@ export default function AddActivity() {
         setJamSelesaiPickerVisibility(false);
     }
 
-    const handleConfirmJamSelesai = (time: any, onChange: any) => {
+    const handleConfirmJamSelesai = (time: Date, onChange: any) => {
         onChange(moment(time).format("HH:mm"));
         hideJamSelesaiPicker();
     }
 
     const submit = async (data: AddActivityProps) => {
-        const jamMulai = `${data.tanggal} ${data.jam_mulai}`;
-        const jamSelesai = `${data.tanggal} ${data.jam_selesai}`;
-
         const formData = {
             id_funding: Number(data.id_funding),
             id_kegiatan: Number(data.id_kegiatan),
             id_sts_pipeline: Number(data.id_sts_pipeline),
             tanggal: data.tanggal,
-            jam_mulai: jamMulai,
-            jam_selesai: jamSelesai,
+            jam_mulai: moment(`${data.tanggal} ${data.jam_mulai}`, "YYYY-MM-DD HH:mm").add(7, "hours").toISOString(),
+            jam_selesai: moment(`${data.tanggal} ${data.jam_selesai}`, "YYYY-MM-DD HH:mm").add(7, "hours").toISOString(),
             deskripsi: data.deskripsi,
             latitude: latitude ? latitude.toString() : "",
             longtitude: longitude ? longitude.toString() : "",
@@ -191,8 +188,8 @@ export default function AddActivity() {
                 setIsSuccess(false);
             }
         } catch (error) {
-            setModalVisible(true);
             setModalMessage("Input Data Gagal");
+            setModalVisible(true);
             setIsSuccess(false);
         }
     }
@@ -243,7 +240,11 @@ export default function AddActivity() {
                             <Text style={styles.formLabel}>Jenis Produk</Text>
                             <View style={{ position: "relative" }}>
                                 <FontAwesome name="file" size={18} color="#F48120" style={styles.iconInput} />
-                                <Input value={jenisProduk} style={[styles.input, !isEditable && styles.inputDisabled]} editable={false} />
+                                <Input
+                                    value={jenisProduk}
+                                    style={[styles.input, styles.inputDisabled]}
+                                    editable={false}
+                                />
                             </View>
                         </View>
 
@@ -251,7 +252,11 @@ export default function AddActivity() {
                             <Text style={styles.formLabel}>Nama Produk</Text>
                             <View style={{ position: "relative" }}>
                                 <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
-                                <Input value={namaProduk} style={[styles.input, !isEditable && styles.inputDisabled]} editable={false} />
+                                <Input
+                                    value={namaProduk}
+                                    style={[styles.input, styles.inputDisabled]}
+                                    editable={false}
+                                />
                             </View>
                         </View>
 
@@ -307,10 +312,7 @@ export default function AddActivity() {
                                             placeholder="Pilih"
                                             data={dataStatusPipeline}
                                             value={value}
-                                            onChange={(item) => {
-                                                handleClientChange(item);
-                                                onChange(item.value);
-                                            }}
+                                            onChange={(item) => onChange(item.value)}
                                         />
                                     </View>
                                 )}
@@ -360,7 +362,12 @@ export default function AddActivity() {
                                     <>
                                         <View style={{ position: "relative" }}>
                                             <Pressable onPress={showJamMulaiPicker} style={styles.dateInput}>
-                                                <FontAwesome6 name="clock" size={19} color="#F48120" style={[styles.iconInput, { marginTop: -7 }]} />
+                                                <FontAwesome6
+                                                    name="clock"
+                                                    size={19}
+                                                    color="#F48120"
+                                                    style={[styles.iconInput, { marginTop: -7 }]}
+                                                />
                                                 <Text style={styles.dateText}>
                                                     {value ? moment(value, "HH:mm").format("HH:mm") : ""}
                                                 </Text>
@@ -370,10 +377,11 @@ export default function AddActivity() {
                                         <DateTimePickerModal
                                             mode="time"
                                             isVisible={isJamMulaiPickerVisible}
-                                            onConfirm={(time) => handleConfirmJamMulai(moment(time), onChange)}
+                                            onConfirm={(time) => handleConfirmJamMulai(time, onChange)}
                                             onCancel={hideJamMulaiPicker}
                                             onChange={onChange}
                                             date={value ? moment(value, "HH:mm").toDate() : new Date()}
+                                            locale="id-ID"
                                         />
                                     </>
                                 )}
@@ -406,7 +414,12 @@ export default function AddActivity() {
                                     <>
                                         <View style={{ position: "relative" }}>
                                             <Pressable onPress={showJamSelesaiPicker} style={styles.dateInput}>
-                                                <MaterialCommunityIcons name="clock-remove-outline" size={20} color="#F48120" style={[styles.iconInput, { marginTop: -7 }]} />
+                                                <MaterialCommunityIcons
+                                                    name="clock-remove-outline"
+                                                    size={20}
+                                                    color="#F48120"
+                                                    style={[styles.iconInput, { marginTop: -7 }]}
+                                                />
                                                 <Text style={styles.dateText}>
                                                     {value ? moment(value, "HH:mm").format("HH:mm") : ""}
                                                 </Text>
@@ -420,6 +433,7 @@ export default function AddActivity() {
                                             onCancel={hideJamSelesaiPicker}
                                             onChange={onChange}
                                             date={value ? moment(value, "HH:mm").toDate() : new Date()}
+                                            locale="id-ID"
                                         />
                                     </>
                                 )}
@@ -496,7 +510,10 @@ export default function AddActivity() {
                                 paddingHorizontal: 10,
                                 borderRadius: 5,
                             }}
-                            onPress={() => { setModalVisible(!modalVisible); navigation.back() }}
+                            onPress={() => {
+                                setModalVisible(!modalVisible);
+                                navigation.back()
+                            }}
                         >
                             <Text
                                 style={{

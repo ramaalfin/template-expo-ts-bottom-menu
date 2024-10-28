@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import {
@@ -10,16 +10,73 @@ import {
 import Topbar from "~/components/TopBar";
 import CalendarComponent from "~/components/Calendar";
 import { Href, useRouter } from "expo-router";
+import { fetchActivitiesByIdUser } from "~/services/trx/activity";
+import { useAuth } from "~/context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
+
+interface ActivityProps {
+  id_activity: number;
+  tanggal: string;
+  jam_mulai: string;
+  jam_selesai: string;
+  occurrences: number;
+  application: string;
+  mst_funding: {
+    mst_product: {
+      mst_application: {
+        application: string;
+      };
+    };
+    nama: string;
+  };
+  mst_kegiatan: {
+    kegiatan: string;
+  };
+  mst_hasil: {
+    hasil: string;
+  };
+  status: string;
+  mst_sts_approval: {
+    sts_approval: string;
+  };
+}
 
 export default function ActivityScreen() {
+  const { user, accessToken } = useAuth();
+  const [activityDates, setActivityDates] = useState<ActivityProps[]>([]);
   const navigation = useRouter();
 
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await fetchActivitiesByIdUser({
+            token: accessToken.token,
+            idUser: user.id_user,
+          });
+
+          setActivityDates(response.data.data);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      fetchData();
+    }, [accessToken, user.id_user])
+  );
+
   const activities = useMemo(() => {
-    const dates = [
-      { id: 1, date: '2024-10-01' },
-      { id: 2, date: '2024-10-01' },
-      { id: 3, date: '2024-10-02' },
-    ];
+    const dates = activityDates.map((activity) => ({
+      id: activity.id_activity,
+      application: activity.mst_funding.mst_product.mst_application.application,
+      nama: activity.mst_funding.nama,
+      jenis: activity.mst_kegiatan.kegiatan,
+      date: activity.tanggal,
+      jam_mulai: activity.jam_mulai,
+      jam_selesai: activity.jam_selesai,
+      status: activity.mst_hasil === null ? "Belum Dilakukan" : "Sudah Dilakukan",
+      status_approval: activity.mst_sts_approval.sts_approval,
+    }));
 
     const frequency = dates.reduce((acc: { [key: string]: number }, current) => {
       acc[current.date] = (acc[current.date] || 0) + 1;
@@ -28,21 +85,27 @@ export default function ActivityScreen() {
 
     const markedDates = dates.map((date) => ({
       id: date.id,
-      date: date.date,
       occurrences: frequency[date.date],
+      application: date.application,
+      nama: date.nama,
+      jenis: date.jenis,
+      date: date.date,
+      jam_mulai: date.jam_mulai,
+      jam_selesai: date.jam_selesai,
+      status: date.status,
+      status_approval: date.status_approval
     }));
 
     return markedDates;
-  }, []);
+  }, [activityDates])
 
   return (
-
-    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
+    <View style={{ flex: 1, backgroundColor: "#F48120" }} >
       {/* Header */}
-      <Topbar titleBar="Aktivitas" />
+      < Topbar titleBar="Aktivitas" />
       {/* header */}
 
-      <View style={styles.container}>
+      <View style={styles.container} >
         {/* calendar component */}
         <CalendarComponent activities={activities} />
 
@@ -62,7 +125,7 @@ export default function ActivityScreen() {
             }}
           />
         </TouchableOpacity>
-      </View>
+      </View >
     </View >
   );
 }

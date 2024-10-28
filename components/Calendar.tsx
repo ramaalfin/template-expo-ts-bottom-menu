@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { StyleSheet, View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 
@@ -7,17 +7,17 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import { format, isEqual, isSameMonth, isToday, startOfDay, parseISO, isSameDay } from 'date-fns';
+import { isEqual, isSameMonth, isToday, parseISO, isSameDay } from 'date-fns';
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Href, Link, useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { formatDate } from '~/utils/formatDate';
 
 export const CalendarComponent = ({ activities }: any) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const today = new Date().toISOString().split('T')[0]; // Mendapatkan tanggal hari ini (yyyy-mm-dd)
+    const today = new Date().toISOString().split('T')[0];
 
     const onDayPress = useCallback((day: any) => {
         setSelectedDate(day.dateString);
@@ -51,7 +51,6 @@ export const CalendarComponent = ({ activities }: any) => {
             isSameDay(parseISO(activity.date), parseISO(selectedDate)
             )) : [];
 
-    // useEffect untuk mengatur background color pada hari ini
     useEffect(() => {
         setSelectedDate(today);
     }, []);
@@ -183,12 +182,15 @@ export default CalendarComponent;
 const Activity = ({ activity }: any) => {
     const navigation = useRouter();
 
+    const jamMulai = activity.jam_mulai.split("T")[1].split(":")[0] + ":" + activity.jam_mulai.split("T")[1].split(":")[1];
+    const jamSelesai = activity.jam_selesai.split("T")[1].split(":")[0] + ":" + activity.jam_selesai.split("T")[1].split(":")[1];
+
     return (
         <View style={styles.activityContainer}>
             <TouchableOpacity
                 style={styles.activityContent}
                 onPress={() => navigation.push(
-                    `/update/${activity.id}` as Href<"/update/1">
+                    `/update/${activity.id}` as Href<"/update/[id]">
                 )}
             >
                 <View style={{
@@ -199,13 +201,18 @@ const Activity = ({ activity }: any) => {
                 }}
                 ></View>
                 <View style={{ padding: 10, width: "90%" }}>
-                    <Text style={styles.titleText}>jumpa di rumah</Text>
-                    <Text style={styles.textDesc}>Bpk/Ibu Syahril Gunawan</Text>
-                    <Text style={styles.textDesc}>Jenis: Visit</Text>
-                    <Text style={styles.date}>31 Januari 2024 10:00 - 12:00</Text>
-                    <Text style={styles.textDesc}>Status: <Text style={{ color: "green" }}>Sudah dilakukan</Text></Text>
-                    <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                    <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
+                    <Text style={styles.titleText}>{activity.application}</Text>
+                    <Text style={styles.textDesc}>Bpk/Ibu {activity.nama}</Text>
+                    <Text style={styles.textDesc}>Jenis: {activity.jenis}</Text>
+                    <Text style={styles.date}>
+                        {`${formatDate(activity.date)} ${jamMulai} - ${jamSelesai}`}
+                    </Text>
+                    <Text style={styles.textDesc}>Status:{" "}
+                        <Text style={{
+                            color: activity.status === "Belum Dilakukan" ? "#D02827" : "#2E7D32",
+                        }}>{activity.status}</Text>
+                    </Text>
+                    <Text style={styles.textDesc}>Approval: {activity.status_approval === null ? "-" : activity.status_approval}</Text>
                 </View>
             </TouchableOpacity>
         </View>
@@ -303,6 +310,6 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 12,
-        color: '#000',
+        color: '#999',
     },
 });

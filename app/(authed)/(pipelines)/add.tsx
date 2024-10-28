@@ -534,7 +534,6 @@ export default function InputPipeline() {
                                                     onChange={(item) => {
                                                         handleProductChange(item);
                                                         onChange(item.value);
-
                                                     }}
                                                     value={value}
                                                 />
@@ -718,7 +717,9 @@ export default function InputPipeline() {
                                                 <Text style={styles.rupiahText}>Rp</Text>
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={(value) => onChange(value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, "."))}
+                                                    onChangeText={(value) =>
+                                                        onChange(value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, "."))
+                                                    }
                                                     value={value}
                                                     style={[styles.input, { paddingLeft: 55 }]}
                                                     inputMode="numeric"

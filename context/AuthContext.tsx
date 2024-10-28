@@ -74,7 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            // Ganti `loginUser` dengan fungsi autentikasi API Anda
             const response = await loginUser({ email, password });
 
             if (response.code === 200) {

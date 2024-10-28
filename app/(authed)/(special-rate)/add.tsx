@@ -183,6 +183,7 @@ export default function InputSpecialRate() {
                                             style={styles.input}
                                             inputMode="numeric"
                                         />
+                                        <Text style={styles.textWarning}><Text style={{ color: "red" }}>*</Text> No Rekening harus 14 karakter</Text>
                                     </View>
                                 )}
                             />

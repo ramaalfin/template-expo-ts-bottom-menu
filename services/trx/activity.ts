@@ -12,6 +12,15 @@ interface ActivityProps {
   longtitude: string;
 }
 
+interface ActivityResultProps {
+  id_hasil: number;
+  id_tindakan: number;
+  id_product: number;
+  realisasi: number;
+  keterangan_hasil: string | null;
+  no_rekening: string | null;
+}
+
 export const createActivity = async ({
   token,
   data,
@@ -25,6 +34,80 @@ export const createActivity = async ({
 
   return await axios.post(
     `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity`,
+    data,
+    { headers }
+  );
+};
+
+export const fetchActivityById = async ({
+  token,
+  id,
+}: {
+  token: string;
+  id: number;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/${id}`,
+    { headers }
+  );
+};
+
+export const fetchActivitiesByIdUser = async ({
+  token,
+  idUser,
+}: {
+  token: string;
+  idUser: number;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/user/${idUser}`,
+    { headers }
+  );
+};
+
+export const updateResultActivityById = async ({
+  token,
+  id,
+  data,
+}: {
+  token: string;
+  id: number;
+  data: ActivityResultProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/update-hasil/${id}`,
+    data,
+    { headers }
+  );
+};
+
+export const updateResultActivityNextAppointmentById = async ({
+  token,
+  id,
+  data,
+}: {
+  token: string;
+  id: number;
+  data: ActivityResultProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/update-hasil-next-appointment/${id}`,
     data,
     { headers }
   );
