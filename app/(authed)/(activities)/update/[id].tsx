@@ -2,11 +2,27 @@ import { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { Image, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
+import { useRouter } from "expo-router";
 
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+
+import moment from "moment";
+
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// hooks
+import { useLocation } from "~/hooks/useLocation";
+
+// services
+import { fetchActivityById, updateResultActivityById, updateResultActivityNextAppointmentById } from "~/services/trx/activity";
+import { fetchHasil } from "~/services/mst/hasil";
+import { fetchTindakan } from "~/services/mst/tindakan";
+import { fetchApplications } from "~/services/mst/applications";
+import { fetchProductByIdApplication } from "~/services/mst/products";
 
 // // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -21,15 +37,6 @@ import { Dropdown } from "react-native-element-dropdown";
 import { formatDate } from "~/utils/formatDate";
 import { Input } from "~/components/ui/input";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import moment from "moment";
-import { useRouter } from "expo-router";
-import { fetchActivityById, updateResultActivityById, updateResultActivityNextAppointmentById } from "~/services/trx/activity";
-import { useAuth } from "~/context/AuthContext";
-import { fetchHasil } from "~/services/mst/hasil";
-import { fetchTindakan } from "~/services/mst/tindakan";
-import { fetchApplications } from "~/services/mst/applications";
-import { fetchProductByIdApplication } from "~/services/mst/products";
-import { useLocation } from "~/hooks/useLocation";
 
 interface ActivityProps {
     id_activity: number;

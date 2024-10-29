@@ -1,8 +1,15 @@
+import { useEffect, useState } from "react";
 import { Href, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchAllFunding } from "~/services/mst/fundings";
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -11,13 +18,47 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Topbar from "~/components/TopBar";
 import { Input } from "~/components/ui/input";
 
+interface PipelineScreenProps {
+  id_funding: number;
+  nama: string;
+  alamat: string;
+  mst_prospect: {
+    prospect: string;
+  }
+  mst_assignment: {
+    target: string;
+  }
+  trx_activity: {
+    mst_hasil: {
+      hasil: string;
+    }
+  }
+}
+
 export default function PipelineScreen() {
   const navigation = useRouter();
+  const { accessToken } = useAuth();
+
+  const [pipelines, setPipelines] = useState<PipelineScreenProps[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetchAllFunding(accessToken.token);
+
+      if (response.data.code === 200) {
+        setPipelines(response.data.data);
+      } else {
+        console.log("Gagal mengambil data");
+      }
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
-      <Topbar titleBar="Aktivitas" />
+      <Topbar titleBar="Pipeline" />
       {/* header */}
 
       <View style={styles.container}>
@@ -40,133 +81,41 @@ export default function PipelineScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
+          {pipelines.length > 0 ? (pipelines.map((item, index) => (
+            <View style={styles.pipelineContainer} key={index}>
+              <View style={styles.pipelineContent}>
+                <Image
+                  source={require("~/assets/icon/ic_kartu_sq.png")}
+                  style={{ width: 45, height: 45 }}
+                />
+                <View style={{ width: "90%" }}>
+                  <Text style={styles.titleText}>{item.nama} - {item.alamat}</Text>
+                  <Text style={styles.prospectStatus}>Hot Prospect</Text>
+                  <Text style={styles.nominal}>Rp. 1.700.000</Text>
+                  <Text style={styles.statusHasil}>Top Up</Text>
+                </View>
+              </View>
+
+              <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+                <TouchableOpacity
+                  style={styles.shareContainer}
+                  onPress={() => navigation.push(`/(pipelines)/detail/${item.id_funding}` as Href<"/(pipelines)/detail/[id]">)}
+                >
+                  <Text style={styles.textShare}>
+                    Lihat Detail
+                  </Text>
+                  <MaterialIcons
+                    name="keyboard-arrow-right"
+                    size={18}
+                    color="#FFFFFF"
+                    style={styles.iconShare}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.pipelineContainer}>
-            <View style={styles.pipelineContent}>
-              <Image
-                source={require("~/assets/icon/ic_kartu_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-                onPress={() => navigation.push('/(pipelines)/detail/1' as Href<'/(pipelines)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+          ))) : (
+            <Text style={{ textAlign: "center", marginTop: 20 }}>Data tidak ditemukan</Text>
+          )}
         </ScrollView>
       </View>
 

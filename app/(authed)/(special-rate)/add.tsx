@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
+import { useScrollToTop } from "@react-navigation/native";
 
 import {
     widthPercentageToDP as wp,
@@ -11,6 +12,15 @@ import { useRouter } from "expo-router";
 
 // context
 import { useAuth } from "~/context/AuthContext";
+
+// services
+import { createSpecialRate } from "~/services/trx/special-rate";
+import { fetchTerms } from "~/services/mst/terms";
+import { fetchStatusRekening } from "~/services/mst/sts-rekening";
+
+// utils
+import moment from "moment";
+import { formatDate } from "~/utils/formatDate";
 
 // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -24,15 +34,7 @@ import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-// services
-import { createSpecialRate } from "~/services/trx/special-rate";
-import { fetchTerms } from "~/services/mst/terms";
 
-// utils
-import moment from "moment";
-import { formatDate } from "~/utils/formatDate";
-import { useScrollToTop } from "@react-navigation/native";
-import { fetchStatusRekening } from "~/services/mst/sts-rekening";
 
 interface InputSpecialRateProps {
     no_rekening: string;

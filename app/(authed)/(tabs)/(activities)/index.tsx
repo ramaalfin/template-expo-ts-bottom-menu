@@ -1,18 +1,23 @@
 import { useCallback, useMemo, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+import { Href, useRouter } from "expo-router";
+
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchActivitiesByIdUser } from "~/services/trx/activity";
+
 // components
 import Topbar from "~/components/TopBar";
 import CalendarComponent from "~/components/Calendar";
-import { Href, useRouter } from "expo-router";
-import { fetchActivitiesByIdUser } from "~/services/trx/activity";
-import { useAuth } from "~/context/AuthContext";
-import { useFocusEffect } from "@react-navigation/native";
 
 interface ActivityProps {
   id_activity: number;

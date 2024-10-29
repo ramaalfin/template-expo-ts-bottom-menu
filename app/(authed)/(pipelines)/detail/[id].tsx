@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import {
@@ -5,13 +6,94 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import { Href, useRouter } from "expo-router";
+import { Href, useLocalSearchParams, useRouter } from "expo-router";
+
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// utils
+import { formatDate } from "~/utils/formatDate";
+
+// services
+import { fetchFundingById } from "~/services/mst/fundings";
 
 // components
 import Topbar from "~/components/TopBar";
 
+interface PipelineScreenProps {
+    id_funding: number;
+    mst_segment: {
+        segment: string;
+    };
+    nama: string;
+    nik: string;
+    no_telp: string;
+    email: string;
+    alamat: string;
+    mst_product: {
+        mst_application: {
+            application: string
+        };
+        product: string;
+    };
+    mst_prospect: {
+        prospect: string;
+    };
+    sys_user_checker: {
+        nama: string;
+    };
+    mst_assignment: {
+        target: string;
+    }
+    keterangan: string;
+    trx_activity: [
+        {
+            tanggal: string;
+            jam_mulai: string;
+            jam_selesai: string;
+            deskripsi: string;
+            mst_kegiatan: {
+                kegiatan: string;
+            };
+            mst_hasil: {
+                hasil: string | null;
+            };
+            mst_sts_approval: {
+                sts_approval: string | null;
+            };
+            mst_funding: {
+                sys_user_checker: {
+                    nama: string;
+                }
+            };
+            keterangan_approval: string;
+        }
+    ]
+}
+
 export default function DetailPipeline() {
+    const { id } = useLocalSearchParams();
     const navigation = useRouter();
+    const { accessToken } = useAuth();
+
+    const [pipeline, setPipeline] = useState<PipelineScreenProps>();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchFundingById({
+                token: accessToken.token,
+                id_funding: Number(id)
+            });
+
+            if (response.data.code === 200) {
+                setPipeline(response.data.data);
+            } else {
+                console.log("Gagal mengambil data");
+            }
+        }
+
+        fetchData();
+    }, []);
 
     return (
         <>
@@ -26,27 +108,27 @@ export default function DetailPipeline() {
                             <Text style={styles.titleContent}>Profil Nasabah</Text>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Segment</Text>
-                                <Text style={styles.textContent}>Retail</Text>
+                                <Text style={styles.textContent}>{pipeline?.mst_segment.segment || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>NIK</Text>
-                                <Text style={styles.textContent}>1234567890</Text>
+                                <Text style={styles.textContent}>{pipeline?.nik || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Nama</Text>
-                                <Text style={styles.textContent}>Abdul</Text>
+                                <Text style={styles.textContent}>{pipeline?.nama || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>No Telepon</Text>
-                                <Text style={styles.textContent}>081234567890</Text>
+                                <Text style={styles.textContent}>{pipeline?.no_telp || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Email</Text>
-                                <Text style={styles.textContent}>abdul@mail.com</Text>
+                                <Text style={styles.textContent}>{pipeline?.email || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Alamat Lengkap</Text>
-                                <Text style={styles.textContent}>Jl. Pembangunan, Bogor</Text>
+                                <Text style={styles.textContent}>{pipeline?.alamat || "-"}</Text>
                             </View>
 
                             <View style={{ borderBottomWidth: .5, borderBottomColor: "#999", marginVertical: 10 }}></View>
@@ -54,32 +136,34 @@ export default function DetailPipeline() {
                             <Text style={styles.titleContent}>Data Pipeline</Text>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Aplikasi</Text>
-                                <Text style={styles.textContent}>Giro</Text>
+                                <Text style={styles.textContent}>{pipeline?.mst_product.mst_application.application || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Produk</Text>
-                                <Text style={styles.textContent}>Swasta</Text>
+                                <Text style={styles.textContent}>{pipeline?.mst_product.product || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Level Pipeline</Text>
-                                <Text style={styles.textContent}>Hot Prospect</Text>
+                                <Text style={styles.textContent}>{pipeline?.mst_prospect?.prospect || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Approval</Text>
-                                <Text style={styles.textContent}>Mardianto</Text>
+                                <Text style={styles.textContent}>{pipeline?.sys_user_checker.nama || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Target</Text>
-                                <Text style={styles.textContent}>Rp. 1.000.000</Text>
+                                <Text style={styles.textContent}>
+                                    Rp. {pipeline?.mst_assignment.target.replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "-"}
+                                </Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Keterangan</Text>
-                                <Text style={styles.textContent}>giro</Text>
+                                <Text style={styles.textContent}>{pipeline?.keterangan || "-"}</Text>
                             </View>
 
                             <TouchableOpacity
                                 style={styles.btnItem}
-                                onPress={() => navigation.push('/update/1' as Href<'/update/1'>)}
+                                onPress={() => navigation.push(`/update/${pipeline?.id_funding}` as Href<"/update/[id]">)}
                             >
                                 <Text style={styles.btnText}>Edit</Text>
                             </TouchableOpacity>
@@ -89,59 +173,32 @@ export default function DetailPipeline() {
                     <View style={styles.historyContainer}>
                         <Text style={styles.titleHistory}>History Prospect</Text>
 
-                        <View style={styles.pipelineContainer}>
-                            <View style={styles.pipelineContent}>
-                                <Image
-                                    source={require("~/assets/icon/ic_koin_sq.png")}
-                                    style={{ width: 45, height: 45 }}
-                                />
-                                <View style={{ width: "90%" }}>
-                                    <Text style={styles.dateText}>04 Oktober 2024 12:00:00 WIB</Text>
-                                    <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                                    <Text style={styles.textDesc}>Agenda: Inisialisasi/Prospek</Text>
-                                    <Text style={styles.textDesc}>Hasil: Top Up</Text>
-                                    <Text style={styles.textDesc}>Approval: Menunggu Approval</Text>
-                                    <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
-                                    <Text style={styles.textDesc}>Catatan Approval: -</Text>
+                        {pipeline?.trx_activity?.length !== null ? (pipeline?.trx_activity.map((item, index) => (
+                            <View style={styles.pipelineContainer} key={index}>
+                                <View style={styles.pipelineContent}>
+                                    <Image
+                                        source={require("~/assets/icon/ic_koin_sq.png")}
+                                        style={{ width: 45, height: 45 }}
+                                    />
+                                    <View style={{ width: "90%" }}>
+                                        <Text style={styles.dateText}>
+                                            {formatDate(item.tanggal)} {" "}
+                                            {item.jam_mulai.split("T")[1].split(":")[0] + ":" + item.jam_mulai.split("T")[1].split(":")[1]} -{" "}
+                                            {item.jam_selesai.split("T")[1].split(":")[0] + ":" + item.jam_selesai.split("T")[1].split(":")[1]} WIB
+                                        </Text>
+                                        <Text style={styles.titleText}>{item.deskripsi}</Text>
+                                        <Text style={styles.textDesc}>Agenda: {item?.mst_kegiatan?.kegiatan || "-"}</Text>
+                                        <Text style={styles.textDesc}>Hasil: {item?.mst_hasil?.hasil || "-"}</Text>
+                                        <Text style={styles.textDesc}>Approval: {item?.mst_sts_approval?.sts_approval || "-"}</Text>
+                                        <Text style={styles.textDesc}>Approve By: {item?.mst_funding?.sys_user_checker?.nama || "-"}</Text>
+                                        <Text style={styles.textDesc}>Catatan Approval: {item.keterangan_approval || "-"}</Text>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
+                        ))) : (
+                            <Text style={{ textAlign: "center", marginTop: 20 }}>Data tidak ditemukan</Text>
+                        )}
 
-                        <View style={styles.pipelineContainer}>
-                            <View style={styles.pipelineContent}>
-                                <Image
-                                    source={require("~/assets/icon/ic_koin_sq.png")}
-                                    style={{ width: 45, height: 45 }}
-                                />
-                                <View style={{ width: "90%" }}>
-                                    <Text style={styles.dateText}>04 Oktober 2024 12:00:00 WIB</Text>
-                                    <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                                    <Text style={styles.textDesc}>Agenda: Inisialisasi/Prospek</Text>
-                                    <Text style={styles.textDesc}>Hasil: Top Up</Text>
-                                    <Text style={styles.textDesc}>Approval: Menunggu Approval</Text>
-                                    <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
-                                    <Text style={styles.textDesc}>Catatan Approval: -</Text>
-                                </View>
-                            </View>
-                        </View>
-
-                        <View style={styles.pipelineContainer}>
-                            <View style={styles.pipelineContent}>
-                                <Image
-                                    source={require("~/assets/icon/ic_koin_sq.png")}
-                                    style={{ width: 45, height: 45 }}
-                                />
-                                <View style={{ width: "90%" }}>
-                                    <Text style={styles.dateText}>04 Oktober 2024 12:00:00 WIB</Text>
-                                    <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                                    <Text style={styles.textDesc}>Agenda: Inisialisasi/Prospek</Text>
-                                    <Text style={styles.textDesc}>Hasil: Top Up</Text>
-                                    <Text style={styles.textDesc}>Approval: Menunggu Approval</Text>
-                                    <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
-                                    <Text style={styles.textDesc}>Catatan Approval: -</Text>
-                                </View>
-                            </View>
-                        </View>
                     </View>
                 </ScrollView>
             </View >

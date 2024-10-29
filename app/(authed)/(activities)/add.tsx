@@ -11,6 +11,18 @@ import moment from "moment";
 import 'moment-timezone';
 import { useRouter } from "expo-router";
 
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// hooks
+import { useLocation } from "~/hooks/useLocation";
+
+// services
+import { fetchFundingByIdUser } from "~/services/mst/fundings";
+import { fetchKegiatan } from "~/services/mst/kegiatan";
+import { fetchStatusPipeline } from "~/services/mst/sts-pipeline";
+import { createActivity } from "~/services/trx/activity";
+
 // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -23,12 +35,6 @@ import { formatDate } from "~/utils/formatDate";
 import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { fetchFundingByIdUser } from "~/services/mst/fundings";
-import { useAuth } from "~/context/AuthContext";
-import { fetchKegiatan } from "~/services/mst/kegiatan";
-import { fetchStatusPipeline } from "~/services/mst/sts-pipeline";
-import { useLocation } from "~/hooks/useLocation";
-import { createActivity } from "~/services/trx/activity";
 
 interface AddActivityProps {
     id_funding: string;

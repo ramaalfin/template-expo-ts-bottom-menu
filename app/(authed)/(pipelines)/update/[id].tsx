@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -7,7 +7,21 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchUserById } from "~/services/sys/user";
+import { fetchProspects } from "~/services/mst/prospects";
+import { fetchApplications } from "~/services/mst/applications";
+import { fetchSectors } from "~/services/mst/sectors";
+import { fetchProductByIdApplication } from "~/services/mst/products";
+import { fetchSubSectorByIdSector } from "~/services/mst/sub-sector";
+import { fetchStatusSegment } from "~/services/mst/sts-segment";
+import { fetchAssignmentByIdUser } from "~/services/mst/assignments";
+import { fetchFundingById, updateFunding } from "~/services/mst/fundings";
 
 // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -22,7 +36,8 @@ import { Dropdown } from "react-native-element-dropdown";
 import StepIndicator from 'react-native-step-indicator';
 
 interface DetailInputPipelineProps {
-    segment: string;
+    id_assignment: string;
+    id_segment: string;
     nik: string;
     nama_lengkap: string;
     telepon: string;
@@ -30,13 +45,65 @@ interface DetailInputPipelineProps {
     alamat_lengkap: string;
     jenis_produk: string;
     nama_produk: string;
+    sector: string;
+    sub_sector: string;
     level_pipeline: string;
     approval: string;
     potensi_dana: string;
     keterangan: string;
+    id_checker: string;
     nextStep: () => void;
     prevStep: () => void;
 };
+
+interface SegmentProps {
+    id_assignment: number;
+    mst_goalsetting: {
+        bulan: number;
+        mst_segment: {
+            segment: string;
+        };
+        mst_application: {
+            application: string;
+        };
+        target: string;
+    };
+}
+
+interface StatusSegmentProps {
+    id_sts_segment: number;
+    sts_segment: string;
+}
+
+interface ApplicationProps {
+    id_application: number;
+    application: string;
+}
+
+interface ProductProps {
+    id_product: number;
+    product: string;
+}
+
+interface SectorProps {
+    id_sektor: number;
+    sektor: string;
+}
+
+interface SubSectorProps {
+    id_sub_sektor: number;
+    sub_sektor: string;
+}
+
+interface PipelineProps {
+    id_prospect: number;
+    prospect: string;
+}
+
+interface ApprovalProps {
+    id_user: number;
+    nama: string;
+}
 
 const labels = ["Data Nasabah", "Detail Penempatan Dana"];
 const customStyles = {
@@ -64,37 +131,184 @@ const customStyles = {
     labelFontFamily: 'Inter_400Regular',
 }
 
+const nama_bulan = [
+    { id: 1, nama: "Januari" },
+    { id: 2, nama: "Februari" },
+    { id: 3, nama: "Maret" },
+    { id: 4, nama: "April" },
+    { id: 5, nama: "Mei" },
+    { id: 6, nama: "Juni" },
+    { id: 7, nama: "Juli" },
+    { id: 8, nama: "Agustus" },
+    { id: 9, nama: "September" },
+    { id: 10, nama: "Oktober" },
+    { id: 11, nama: "November" },
+    { id: 12, nama: "Desember" },
+]
+
 export default function DetailInputPipeline() {
-    const { control, handleSubmit, formState: { errors } } = useForm<DetailInputPipelineProps>();
+    const { id } = useLocalSearchParams();
+    const { control, handleSubmit, formState: { errors }, setValue } = useForm<DetailInputPipelineProps>();
+    const { accessToken, isLoading, user } = useAuth();
     const navigation = useRouter();
 
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<DetailInputPipelineProps>();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
 
-    const dataSegment = [
-        { label: "Retail-Oktober-Giro-Rp.100.000.000", value: 1 },
-        { label: "Retail-November-Giro-Rp.100.000.000", value: 2 },
-        { label: "Retail-Desember-Giro-Rp.100.000.000", value: 3 },
-    ];
-    const dataJenisProduk = [
-        { label: "Retail", value: 1 },
-        { label: "KPR", value: 2 },
-        { label: "KKB", value: 3 },
-    ];
-    const dataNamaProduk = [
-        { label: "Giro", value: 1 },
-        { label: "Tabungan", value: 2 },
-        { label: "Deposito", value: 3 },
-    ];
-    const dataLevelPipeline = [
-        { label: "Hot Prospect", value: 1 },
-        { label: "Warm", value: 2 },
-        { label: "Cold", value: 3 },
-    ];
-    const dataApproval = [
-        { label: "Mardianto", value: 1 },
-        { label: "Bambang", value: 2 },
-    ];
+    const [segments, setSegments] = useState<SegmentProps[]>([]);
+    const [statusSegments, setStatusSegments] = useState<StatusSegmentProps[]>([]);
+    const [applications, setApplications] = useState<ApplicationProps[]>([]);
+    const [products, setProducts] = useState<ProductProps[]>([]);
+    const [sectors, setSectors] = useState<SectorProps[]>([]);
+    const [subSectors, setSubSectors] = useState<SubSectorProps[]>([]);
+    const [pipelines, setPipelines] = useState<PipelineProps[]>([]);
+    const [approvals, setApprovals] = useState<ApprovalProps[]>([]);
+
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchFundingById({
+                id_funding: Number(id),
+                token: accessToken?.token
+            });
+
+            console.log(response.data.data);
+
+            if (response.data.code === 200) {
+                setValue("id_assignment", response.data.data.id_assignment.toString());
+                setValue("id_segment", response.data.data.id_segment.toString());
+                setValue("jenis_produk", response.data.data.id_product.toString());
+                setValue("sub_sector", response.data.data.id_sub_sektor.toString());
+                setValue("nik", response.data.data.nik);
+                setValue("nama_lengkap", response.data.data.nama);
+                setValue("telepon", response.data.data.no_telp);
+                setValue("email", response.data.data.email);
+                setValue("alamat_lengkap", response.data.data.alamat);
+                setValue("level_pipeline", response.data.data.id_prospect.toString());
+                setValue("approval", response.data.data.id_checker.toString());
+                setValue("potensi_dana", response.data.data.target.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+                setValue("keterangan", response.data.data.keterangan);
+            } else {
+                console.log("Gagal mengambil data");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchAssignmentByIdUser(user?.id_user, accessToken?.token);
+
+            if (response.data.code === 200) {
+                setSegments(response.data.data);
+            } else {
+                console.log("Gagal mengambil data segment");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchStatusSegment(accessToken?.token);
+
+            if (response.data.code === 200) {
+                setStatusSegments(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data status segment");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchApplications(accessToken?.token);
+
+            if (response.data.code === 200) {
+                setApplications(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data aplikasi");
+            }
+        }
+        fetchData();
+    }, []);
+
+    const handleProductChange = async (item: any) => {
+        const id_application = applications.find((app) => app.application === item.label)?.id_application;
+        const response = await fetchProductByIdApplication(Number(id_application), accessToken?.token);
+
+        if (response.data.code === 200) {
+            setProducts(response.data.data);
+        } else {
+            console.log("Gagal mengambil data produk");
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchSectors(accessToken?.token);
+
+            if (response.data.code === 200) {
+                setSectors(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data sektor");
+            }
+        }
+        fetchData();
+    }, []);
+
+    const handleSectorChange = async (item: any) => {
+        const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
+        const response = await fetchSubSectorByIdSector(Number(id_sector), accessToken?.token);
+
+        if (response.data.code === 200) {
+            setSubSectors(response.data.data);
+        } else {
+            console.log("Gagal mengambil data sub sektor");
+        }
+    }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchProspects(accessToken?.token);
+
+            if (response.data.code === 200) {
+                setPipelines(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data pipeline");
+            }
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchUserById(user?.id_user, accessToken?.token);
+
+            if (response.data.code === 200) {
+                setApprovals(response.data.data.pemutus);
+            } else {
+                console.log("Gagal mengambil data pemutus");
+            }
+        }
+        fetchData();
+    }, []);
+
+    const dataSegment = segments.map((item) => ({
+        label: `${item.mst_goalsetting.mst_segment.segment} - ${nama_bulan[item.mst_goalsetting.bulan - 1].nama} - ${item.mst_goalsetting.mst_application.application} - ${item.mst_goalsetting.target}`,
+        value: item.id_assignment
+    }));
+    const dataStatusSegment = statusSegments.map((item) => ({ label: item.sts_segment, value: item.id_sts_segment }));
+    const dataJenisProduk = applications.map((item) => ({ label: item.application, value: item.id_application }));
+    const dataNamaProduk = products.map((item) => ({ label: item.product, value: item.id_product }));
+    const dataSector = sectors.map((item) => ({ label: item.sektor, value: item.id_sektor }));
+    const dataSubSector = subSectors.map((item) => ({ label: item.sub_sektor, value: item.id_sub_sektor }));
+    const dataLevelPipeline = pipelines.map((item) => ({ label: item.prospect, value: item.id_prospect }));
+    const dataApproval = approvals.map((item) => ({ label: item.nama, value: item.id_user }));
 
     const nextStep = (data: DetailInputPipelineProps) => {
         if (activeStep === 0) {
@@ -109,9 +323,45 @@ export default function DetailInputPipeline() {
         }
     }
 
-    const finalSubmit = (data: DetailInputPipelineProps) => {
+    const finalSubmit = async (data: DetailInputPipelineProps) => {
         const allData = { ...formData, ...data };
-        console.log(allData);
+
+        const dataFunding = {
+            id_assignment: Number(allData.id_assignment),
+            id_product: Number(allData.jenis_produk),
+            id_segment: Number(allData.id_segment),
+            id_sub_sektor: Number(allData.sub_sector),
+            nik: allData.nik,
+            nama: allData.nama_lengkap,
+            alamat: allData.alamat_lengkap,
+            no_telp: allData.telepon,
+            email: allData.email,
+            target: Number(allData.potensi_dana.replace(/\./g, '')),
+            keterangan: allData.keterangan,
+            id_checker: allData.approval,
+        }
+
+        try {
+            const response = await updateFunding({
+                token: accessToken?.token,
+                data: dataFunding,
+                id_funding: Number(id)
+            });
+
+            if (response.data.code === 200) {
+                setModalVisible(true);
+                setModalMessage("Update Data Berhasil");
+                setIsSuccess(true);
+            } else {
+                setModalVisible(true);
+                setModalMessage("Update Data Gagal");
+                setIsSuccess(false);
+            }
+        } catch (error) {
+            setModalVisible(true);
+            setModalMessage("Update Data Gagal");
+            setIsSuccess(false);
+        }
     };
 
     return (
@@ -137,7 +387,7 @@ export default function DetailInputPipeline() {
                                     <Text style={styles.formLabel}>Segment</Text>
                                     <Controller
                                         control={control}
-                                        name="segment"
+                                        name="id_assignment"
                                         rules={{ required: "Segment wajib diisi" }}
                                         render={({ field: { onChange, value } }) => (
                                             <View style={{ position: "relative" }}>
@@ -153,13 +403,42 @@ export default function DetailInputPipeline() {
                                                     valueField="value"
                                                     placeholder="Pilih"
                                                     data={dataSegment}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
                                             </View>
                                         )}
                                     />
-                                    {errors.segment && <Text style={styles.errorField}>{errors.segment.message}</Text>}
+                                    {errors.id_assignment && <Text style={styles.errorField}>{errors.id_assignment.message}</Text>}
+                                </View>
+
+                                <View style={styles.formItem}>
+                                    <Text style={styles.formLabel}>Status Segment</Text>
+                                    <Controller
+                                        control={control}
+                                        name="id_segment"
+                                        rules={{ required: "Segment wajib diisi" }}
+                                        render={({ field: { onChange, value } }) => (
+                                            <View style={{ position: "relative" }}>
+                                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                                <Dropdown
+                                                    style={[styles.dropdown, { borderColor: '#999' }]}
+                                                    placeholderStyle={styles.placeholderStyle}
+                                                    selectedTextStyle={styles.selectedTextStyle}
+                                                    iconStyle={styles.iconStyle}
+                                                    itemTextStyle={styles.itemTextStyle}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder="Pilih"
+                                                    data={dataStatusSegment}
+                                                    onChange={(item) => onChange(item.value)}
+                                                    value={value}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                    {errors.id_segment && <Text style={styles.errorField}>{errors.id_segment.message}</Text>}
                                 </View>
 
                                 <View style={styles.formItem}>
@@ -167,13 +446,19 @@ export default function DetailInputPipeline() {
                                     <Controller
                                         control={control}
                                         name="nik"
-                                        rules={{ required: "NIK wajib diisi" }}
+                                        rules={{
+                                            required: "NIK wajib diisi",
+                                            pattern: {
+                                                value: /^[0-9]{16}$/,
+                                                message: "NIK tidak valid"
+                                            }
+                                        }}
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <FontAwesome6 name="clipboard-user" size={18} color="#F48120" style={styles.iconInput} />
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={onChange}
+                                                    onChangeText={(val) => onChange(val.replace(/\D/g, "").slice(0, 16))}
                                                     value={value}
                                                     style={styles.input}
                                                     inputMode="numeric"
@@ -210,13 +495,20 @@ export default function DetailInputPipeline() {
                                     <Controller
                                         control={control}
                                         name="telepon"
-                                        rules={{ required: "Telepon wajib diisi" }}
+                                        rules={{
+                                            required: "Telepon wajib diisi",
+                                            pattern: {
+                                                value: /^(0)(\d{10,15})$/,
+                                                message: "No Telepon tidak valid"
+                                            }
+
+                                        }}
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <MaterialCommunityIcons name="phone" size={18} color="#F48120" style={styles.iconInput} />
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={onChange}
+                                                    onChangeText={(val) => onChange(val.replace(/\D/g, "").slice(0, 15))}
                                                     value={value}
                                                     style={styles.input}
                                                     inputMode="tel"
@@ -232,7 +524,10 @@ export default function DetailInputPipeline() {
                                     <Controller
                                         control={control}
                                         name="email"
-                                        rules={{ required: "Email wajib diisi" }}
+                                        rules={{
+                                            required: "Email wajib diisi",
+                                            validate: (value) => value.includes("@") || "Email tidak valid"
+                                        }}
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <MaterialIcons name="alternate-email" size={18} color="#F48120" style={styles.iconInput} />
@@ -313,7 +608,10 @@ export default function DetailInputPipeline() {
                                                     valueField="value"
                                                     placeholder="Pilih"
                                                     data={dataJenisProduk}
-                                                    onChange={onChange}
+                                                    onChange={(item) => {
+                                                        handleProductChange(item);
+                                                        onChange(item.value);
+                                                    }}
                                                     value={value}
                                                 />
                                             </View>
@@ -331,7 +629,6 @@ export default function DetailInputPipeline() {
                                         render={({ field: { onChange, value } }) => (
                                             <View style={{ position: "relative" }}>
                                                 <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
-
                                                 <Dropdown
                                                     style={[styles.dropdown, { borderColor: "#999" }]}
                                                     placeholderStyle={styles.placeholderStyle}
@@ -343,13 +640,74 @@ export default function DetailInputPipeline() {
                                                     valueField="value"
                                                     placeholder="Pilih"
                                                     data={dataNamaProduk}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
                                             </View>
                                         )}
                                     />
                                     {errors.nama_produk && <Text style={styles.errorField}>{errors.nama_produk.message}</Text>}
+                                </View>
+
+                                <View style={styles.formItem}>
+                                    <Text style={styles.formLabel}>Sektor</Text>
+                                    <Controller
+                                        control={control}
+                                        name="sector"
+                                        rules={{ required: "Sektor wajib diisi" }}
+                                        render={({ field: { onChange, value } }) => (
+                                            <View style={{ position: "relative" }}>
+                                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                                <Dropdown
+                                                    style={[styles.dropdown, { borderColor: "#999" }]}
+                                                    placeholderStyle={styles.placeholderStyle}
+                                                    selectedTextStyle={styles.selectedTextStyle}
+                                                    iconStyle={styles.iconStyle}
+                                                    itemTextStyle={styles.itemTextStyle}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder="Pilih"
+                                                    data={dataSector}
+                                                    onChange={(item) => {
+                                                        handleSectorChange(item);
+                                                        onChange(item.value);
+                                                    }}
+                                                    value={value}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                    {errors.sector && <Text style={styles.errorField}>{errors.sector.message}</Text>}
+                                </View>
+
+                                <View style={styles.formItem}>
+                                    <Text style={styles.formLabel}>Sub Sektor</Text>
+                                    <Controller
+                                        control={control}
+                                        name="sub_sector"
+                                        rules={{ required: "Sub Sektor wajib diisi" }}
+                                        render={({ field: { onChange, value } }) => (
+                                            <View style={{ position: "relative" }}>
+                                                <MaterialIcons name="folder-special" size={20} color="#F48120" style={styles.iconInput} />
+                                                <Dropdown
+                                                    style={[styles.dropdown, { borderColor: "#999" }]}
+                                                    placeholderStyle={styles.placeholderStyle}
+                                                    selectedTextStyle={styles.selectedTextStyle}
+                                                    iconStyle={styles.iconStyle}
+                                                    itemTextStyle={styles.itemTextStyle}
+                                                    maxHeight={300}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    placeholder="Pilih"
+                                                    data={dataSubSector}
+                                                    onChange={(item) => onChange(item.value)}
+                                                    value={value}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                    {errors.sub_sector && <Text style={styles.errorField}>{errors.sub_sector.message}</Text>}
                                 </View>
 
                                 <View style={styles.formItem}>
@@ -373,7 +731,7 @@ export default function DetailInputPipeline() {
                                                     placeholder="Pilih"
                                                     data={dataLevelPipeline}
                                                     value={value}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                 />
                                             </View>
                                         )}
@@ -402,7 +760,7 @@ export default function DetailInputPipeline() {
                                                     placeholder={"Pilih"}
                                                     data={dataApproval}
                                                     value={value}
-                                                    onChange={onChange}
+                                                    onChange={(item) => onChange(item.value)}
                                                 />
                                             </View>
                                         )}
@@ -433,11 +791,14 @@ export default function DetailInputPipeline() {
                                                         }]
                                                     }
                                                 />
+                                                <Text style={styles.rupiahText}>Rp</Text>
                                                 <Input
                                                     onBlur={onBlur}
-                                                    onChangeText={onChange}
+                                                    onChangeText={(value) =>
+                                                        onChange(value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, "."))
+                                                    }
                                                     value={value}
-                                                    style={styles.input}
+                                                    style={[styles.input, { paddingLeft: 55 }]}
                                                     inputMode="numeric"
                                                 />
                                             </View>
@@ -481,7 +842,11 @@ export default function DetailInputPipeline() {
                                         style={[styles.btnItem, { backgroundColor: "#F48120", borderColor: "#F48120" }]}
                                         onPress={handleSubmit(finalSubmit)}
                                     >
-                                        <Text style={[styles.btnText, { color: "#FFF" }]}>Kirim</Text>
+                                        {isLoading ? (
+                                            <ActivityIndicator size="small" color="#FFF" />
+                                        ) : (
+                                            <Text style={[styles.btnText, { color: "#FFF" }]}>Kirim</Text>
+                                        )}
                                     </TouchableOpacity>
                                 </View>
                             </>
@@ -489,7 +854,49 @@ export default function DetailInputPipeline() {
                     </View>
                 </ScrollView>
             </View>
-        </View >
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Image
+                            source={isSuccess ? require("~/assets/icon/ic_success.png") : require("~/assets/icon/ic_failed.png")}
+                            style={{ width: 90, height: 90, marginBottom: 20 }}
+                        />
+                        <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>
+                            {modalMessage}
+                        </Text>
+                        <View style={{ marginVertical: 15, borderWidth: .5, borderColor: "#F48120", width: "100%" }}></View>
+                        <Pressable
+                            style={{
+                                paddingHorizontal: 10,
+                                borderRadius: 5,
+                            }}
+                            onPress={() => { setModalVisible(!modalVisible); navigation.back() }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: "Inter_600SemiBold",
+                                    fontSize: 14,
+                                    textAlign: "center",
+                                    color: "#F48120",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                Tutup
+                            </Text>
+
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
+        </View>
     )
 }
 
@@ -592,5 +999,35 @@ const styles = StyleSheet.create({
     btnText: {
         fontSize: 14,
         fontFamily: "Inter_400Regular",
+    },
+    rupiahText: {
+        position: "absolute",
+        top: 16,
+        left: 35,
+        fontSize: 13,
+        fontFamily: "Inter_400Regular"
+    },
+
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+    modalView: {
+        width: '60%',
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
 });

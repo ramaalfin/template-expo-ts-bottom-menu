@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -11,6 +12,12 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { dashboardByIdUser, fetchActivitiesByIdUserToday } from "~/services/trx/activity";
+
 // icon
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -20,9 +27,6 @@ import { Href, useRouter } from "expo-router";
 
 // components
 import * as Progress from 'react-native-progress';
-import { useEffect, useState } from "react";
-import { dashboardByIdUser, fetchActivitiesByIdUserToday } from "~/services/trx/activity";
-import { useAuth } from "~/context/AuthContext";
 
 interface DataProps {
   countClosing: number;
@@ -285,12 +289,12 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           style={{ height: hp("33%") }}
         >
-          {activityToday.map((item: any, index: number) => (
+          {activityToday.length > 0 ? (activityToday.map((item: any, index: number) => (
             <TouchableOpacity
               key={index}
               style={styles.menu}
               onPress={() => navigation.push(
-                `/update/${item.id_activity}` as Href<{ id_activity: number }>
+                `/update/${item.id_activity}` as Href<"update/[id]">,
               )}
             >
               <Image
@@ -317,7 +321,19 @@ export default function HomeScreen() {
                 </View>
               </View>
             </TouchableOpacity>
-          ))}
+          ))) : (
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 14,
+                color: "#707070",
+                textAlign: "center",
+                marginTop: 10,
+              }}
+            >
+              Tidak ada pengingat hari ini
+            </Text>
+          )}
         </ScrollView>
       </View>
       {/* content */}

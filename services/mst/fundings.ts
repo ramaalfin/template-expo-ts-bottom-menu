@@ -16,6 +16,16 @@ interface DataFundingProps {
   id_checker: string;
 }
 
+export const fetchAllFunding = async (token: string) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings`, {
+    headers,
+  });
+};
+
 export const fetchFundingByIdUser = async (id_user: number, token: string) => {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -29,12 +39,31 @@ export const fetchFundingByIdUser = async (id_user: number, token: string) => {
   );
 };
 
+export const fetchFundingById = async ({
+  id_funding,
+  token,
+}: {
+  id_funding: number;
+  token: string;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/${id_funding}`,
+    {
+      headers,
+    }
+  );
+};
+
 export const storeFunding = async ({
   token,
-  DataFunding,
+  data,
 }: {
   token: string;
-  DataFunding: DataFundingProps;
+  data: DataFundingProps;
 }) => {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -42,7 +71,27 @@ export const storeFunding = async ({
 
   return await axios.post(
     `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings`,
-    DataFunding,
+    data,
+    { headers }
+  );
+};
+
+export const updateFunding = async ({
+  id_funding,
+  token,
+  data,
+}: {
+  id_funding: number;
+  token: string;
+  data: DataFundingProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/${id_funding}`,
+    data,
     { headers }
   );
 };

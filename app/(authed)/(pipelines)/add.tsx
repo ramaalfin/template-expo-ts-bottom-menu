@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -15,6 +16,13 @@ import { useAuth } from "~/context/AuthContext";
 // services
 import { fetchUserById } from "~/services/sys/user";
 import { fetchProspects } from "~/services/mst/prospects";
+import { fetchApplications } from "~/services/mst/applications";
+import { fetchSectors } from "~/services/mst/sectors";
+import { fetchProductByIdApplication } from "~/services/mst/products";
+import { fetchSubSectorByIdSector } from "~/services/mst/sub-sector";
+import { fetchStatusSegment } from "~/services/mst/sts-segment";
+import { fetchAssignmentByIdUser } from "~/services/mst/assignments";
+import { storeFunding } from "~/services/mst/fundings";
 
 // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -27,14 +35,6 @@ import Topbar from "~/components/TopBar";
 import { Input } from "~/components/ui/input";
 import { Dropdown } from "react-native-element-dropdown";
 import StepIndicator from 'react-native-step-indicator';
-import { fetchApplications } from "~/services/mst/applications";
-import { fetchSectors } from "~/services/mst/sectors";
-import { fetchProductByIdApplication } from "~/services/mst/products";
-import { fetchSubSectorByIdSector } from "~/services/mst/sub-sector";
-import { fetchStatusSegment } from "~/services/mst/sts-segment";
-import { fetchAssignmentByIdUser } from "~/services/mst/assignments";
-import { storeFunding } from "~/services/mst/fundings";
-import { useScrollToTop } from "@react-navigation/native";
 
 interface InputPipelineProps {
     segment: string;
@@ -55,6 +55,55 @@ interface InputPipelineProps {
     nextStep: () => void;
     prevStep: () => void;
 };
+
+interface SegmentProps {
+    id_assignment: number;
+    mst_goalsetting: {
+        bulan: number;
+        mst_segment: {
+            segment: string;
+        };
+        mst_application: {
+            application: string;
+        };
+        target: string;
+    };
+}
+
+interface StatusSegmentProps {
+    id_sts_segment: number;
+    sts_segment: string;
+}
+
+interface ApplicationProps {
+    id_application: number;
+    application: string;
+}
+
+interface ProductProps {
+    id_product: number;
+    product: string;
+}
+
+interface SectorProps {
+    id_sektor: number;
+    sektor: string;
+}
+
+interface SubSectorProps {
+    id_sub_sektor: number;
+    sub_sektor: string;
+}
+
+interface PipelineProps {
+    id_prospect: number;
+    prospect: string;
+}
+
+interface ApprovalProps {
+    id_user: number;
+    nama: string;
+}
 
 const labels = ["Data Nasabah", "Detail Penempatan Dana"];
 const customStyles = {
@@ -107,14 +156,14 @@ export default function InputPipeline() {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
 
-    const [segments, setSegments] = useState<any[]>([]);
-    const [statusSegments, setStatusSegments] = useState<any[]>([]);
-    const [applications, setApplications] = useState<any[]>([]);
-    const [products, setProducts] = useState<any[]>([]);
-    const [sectors, setSectors] = useState<any[]>([]);
-    const [subSectors, setSubSectors] = useState<any[]>([]);
-    const [pipelines, setPipelines] = useState<any[]>([]);
-    const [approvals, setApprovals] = useState<any[]>([]);
+    const [segments, setSegments] = useState<SegmentProps[]>([]);
+    const [statusSegments, setStatusSegments] = useState<StatusSegmentProps[]>([]);
+    const [applications, setApplications] = useState<ApplicationProps[]>([]);
+    const [products, setProducts] = useState<ProductProps[]>([]);
+    const [sectors, setSectors] = useState<SectorProps[]>([]);
+    const [subSectors, setSubSectors] = useState<SubSectorProps[]>([]);
+    const [pipelines, setPipelines] = useState<PipelineProps[]>([]);
+    const [approvals, setApprovals] = useState<ApprovalProps[]>([]);
 
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -159,7 +208,7 @@ export default function InputPipeline() {
 
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(id_application, accessToken?.token);
+        const response = await fetchProductByIdApplication(Number(id_application), accessToken?.token);
 
         if (response.data.code === 200) {
             setProducts(response.data.data);
@@ -183,7 +232,7 @@ export default function InputPipeline() {
 
     const handleSectorChange = async (item: any) => {
         const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
-        const response = await fetchSubSectorByIdSector(id_sector, accessToken?.token);
+        const response = await fetchSubSectorByIdSector(Number(id_sector), accessToken?.token);
 
         if (response.data.code === 200) {
             setSubSectors(response.data.data);
@@ -255,7 +304,7 @@ export default function InputPipeline() {
 
         const dataFunding = {
             id_assignment: Number(allData.segment),
-            id_product: Number(allData.nama_produk),
+            id_product: Number(allData.jenis_produk),
             id_segment: Number(allData.status_segment),
             id_sub_sektor: Number(allData.sub_sector),
             nik: allData.nik,
@@ -269,7 +318,7 @@ export default function InputPipeline() {
         }
 
         try {
-            const response = await storeFunding({ token: accessToken?.token, DataFunding: dataFunding });
+            const response = await storeFunding({ token: accessToken?.token, data: dataFunding });
 
             if (response.data.code === 200) {
                 setModalVisible(true);
@@ -819,7 +868,7 @@ export default function InputPipeline() {
                     </View>
                 </View>
             </Modal>
-        </View >
+        </View>
     )
 }
 
