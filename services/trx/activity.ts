@@ -73,6 +73,40 @@ export const fetchActivitiesByIdUser = async ({
   );
 };
 
+export const fetchActivitiesByIdUserToday = async ({
+  token,
+  idUser,
+}: {
+  token: string;
+  idUser: number;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/user/${idUser}/today`,
+    { headers }
+  );
+};
+
+export const dashboardByIdUser = async ({
+  token,
+  idUser,
+}: {
+  token: string;
+  idUser: number;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/dashboard/${idUser}`,
+    { headers }
+  );
+};
+
 export const updateResultActivityById = async ({
   token,
   id,

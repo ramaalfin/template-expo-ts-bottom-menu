@@ -20,9 +20,69 @@ import { Href, useRouter } from "expo-router";
 
 // components
 import * as Progress from 'react-native-progress';
+import { useEffect, useState } from "react";
+import { dashboardByIdUser, fetchActivitiesByIdUserToday } from "~/services/trx/activity";
+import { useAuth } from "~/context/AuthContext";
+
+interface DataProps {
+  countClosing: number;
+  countTotal: number;
+  pctClosing: number;
+  countPending: number;
+  pctPending: number;
+}
+
+interface ActivityTodayProps {
+  jam_mulai: string;
+  jam_selesai: string;
+}
 
 export default function HomeScreen() {
   const navigation = useRouter();
+  const { accessToken, user } = useAuth();
+  const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
+
+  const [data, setData] = useState<DataProps>();
+  const [activityToday, setActivityToday] = useState<ActivityTodayProps[]>([]);
+
+  useEffect(() => {
+    user?.photo ? setPhoto({ uri: user.photo }) : setPhoto(require("~/assets/images/nophoto.jpg"));
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // fetch data
+      const response = await dashboardByIdUser({
+        token: accessToken.token,
+        idUser: user.id_user,
+      });
+
+      if (response.data.code === 200) {
+        setData(response.data.data);
+      } else {
+        console.log("Gagal mengambil data");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetchActivitiesByIdUserToday({
+        token: accessToken.token,
+        idUser: user.id_user,
+      });
+
+      if (response.data.code === 200) {
+        setActivityToday(response.data.data);
+      } else {
+        console.log("Gagal mengambil data");
+      }
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
@@ -33,7 +93,7 @@ export default function HomeScreen() {
             <Text style={styles.topBarPrimaryText}>
               Hi,{" "}
               <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                Rama Alfin{" "}
+                {user.nama}
               </Text>
             </Text>
             <Text style={styles.topBarSecondaryText}>OPS. KC Cimahi Baros</Text>
@@ -45,7 +105,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <Image
-              source={require("~/assets/images/nophoto.jpg")}
+              source={photo}
               resizeMode="cover"
               style={styles.photoProfile}
             />
@@ -54,7 +114,7 @@ export default function HomeScreen() {
 
         <Text style={styles.topBarSecondaryText}>Your progress</Text>
 
-        <View style={{}}>
+        <View>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
             <View style={styles.progressContainer}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -70,11 +130,11 @@ export default function HomeScreen() {
                 <View
                   style={{
                     flex: 1,
-                    alignItems: "flex-end",
+                    alignItems: "center",
                   }}
                 >
-                  <Text style={styles.progressMainText}>20</Text>
-                  <Text style={styles.progressSecondaryText}>of 40</Text>
+                  <Text style={styles.progressMainText}>{data?.countClosing || '-'}</Text>
+                  <Text style={styles.progressSecondaryText}>of {data?.countTotal || '-'}</Text>
                 </View>
               </View>
 
@@ -116,12 +176,12 @@ export default function HomeScreen() {
 
                 <Text
                   style={{
-                    fontSize: 45,
+                    fontSize: 34,
                     fontFamily: "Inter_500Medium",
                     color: "#707070",
                   }}
                 >
-                  50%
+                  {data?.pctClosing ? data?.pctClosing.toFixed(1).replace('.', ',') : '-'}%
                 </Text>
               </View>
             </View>
@@ -141,8 +201,8 @@ export default function HomeScreen() {
                     alignItems: "flex-end",
                   }}
                 >
-                  <Text style={styles.progressMainText}>20</Text>
-                  <Text style={styles.progressSecondaryText}>of 40</Text>
+                  <Text style={styles.progressMainText}>{data?.countPending || '-'}</Text>
+                  <Text style={styles.progressSecondaryText}>of {data?.countTotal}</Text>
                 </View>
               </View>
 
@@ -153,6 +213,7 @@ export default function HomeScreen() {
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  gap: 5,
                 }}
               >
                 <TouchableOpacity
@@ -184,12 +245,12 @@ export default function HomeScreen() {
 
                 <Text
                   style={{
-                    fontSize: 45,
+                    fontSize: 34,
                     fontFamily: "Inter_500Medium",
                     color: "#707070",
                   }}
                 >
-                  50%
+                  {data?.pctPending ? data?.pctPending.toFixed(1).replace('.', ',') : '-'}%
                 </Text>
               </View>
             </View>
@@ -224,175 +285,39 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           style={{ height: hp("33%") }}
         >
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={() => navigation.push(
-              `/update/1` as Href<"/update/1">
-            )}
-          >
-            <Image
-              source={require("~/assets/icon/ic_notif_kuning.png")}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={styles.menuItem}>
-              <Text style={styles.menuText}>08.00 Meeting Client #1</Text>
+          {activityToday.map((item: any, index: number) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.menu}
+              onPress={() => navigation.push(
+                `/update/${item.id_activity}` as Href<{ id_activity: number }>
+              )}
+            >
+              <Image
+                source={require("~/assets/icon/ic_notif_kuning.png")}
+                style={{ width: 30, height: 30 }}
+              />
+              <View style={styles.menuItem}>
+                <Text style={styles.menuText}>
+                  {item.mst_funding.nama} - {item.deskripsi}
+                </Text>
 
-              <View
-                style={{
-                  backgroundColor: "#1D4592",
-                  borderRadius: 20,
-                  padding: 2,
-                }}
-              >
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={16}
-                  color="#FFFFFF"
-                />
+                <View
+                  style={{
+                    backgroundColor: "#1D4592",
+                    borderRadius: 20,
+                    padding: 2,
+                  }}
+                >
+                  <MaterialIcons
+                    name="keyboard-arrow-right"
+                    size={16}
+                    color="#FFFFFF"
+                  />
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={() => navigation.push(
-              `/update/1` as Href<"/update/1">
-            )}
-          >
-            <Image
-              source={require("~/assets/icon/ic_notif_kuning.png")}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={styles.menuItem}>
-              <Text style={styles.menuText}>11.00 Konfirmasi Rekening</Text>
-
-              <View
-                style={{
-                  backgroundColor: "#1D4592",
-                  borderRadius: 20,
-                  padding: 2,
-                }}
-              >
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={() => navigation.push(
-              `/update/1` as Href<"/update/1">
-            )}>
-            <Image
-              source={require("~/assets/icon/ic_notif_kuning.png")}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={styles.menuItem}>
-              <Text style={styles.menuText}>12.00 Launch Bareng Client #3</Text>
-
-              <View
-                style={{
-                  backgroundColor: "#1D4592",
-                  borderRadius: 20,
-                  padding: 2,
-                }}
-              >
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={() => navigation.push(
-              `/update/1` as Href<"/update/1">
-            )}>
-            <Image
-              source={require("~/assets/icon/ic_notif_kuning.png")}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={styles.menuItem}>
-              <Text style={styles.menuText}>14.00 Survey Agunan Client #2</Text>
-
-              <View
-                style={{
-                  backgroundColor: "#1D4592",
-                  borderRadius: 20,
-                  padding: 2,
-                }}
-              >
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={() => navigation.push(
-              `/update/1` as Href<"/update/1">
-            )}>
-            <Image
-              source={require("~/assets/icon/ic_notif_kuning.png")}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={styles.menuItem}>
-              <Text style={styles.menuText}>16.00 Meeting Client #4</Text>
-
-              <View
-                style={{
-                  backgroundColor: "#1D4592",
-                  borderRadius: 20,
-                  padding: 2,
-                }}
-              >
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={() => navigation.push(
-              `/update/1` as Href<"/update/1">
-            )}>
-            <Image
-              source={require("~/assets/icon/ic_notif_kuning.png")}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={styles.menuItem}>
-              <Text style={styles.menuText}>16.00 Meeting Client #4</Text>
-
-              <View
-                style={{
-                  backgroundColor: "#1D4592",
-                  borderRadius: 20,
-                  padding: 2,
-                }}
-              >
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </View>
       {/* content */}
@@ -519,5 +444,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     marginVertical: 10,
+    width: wp("50%"),
   },
 });
