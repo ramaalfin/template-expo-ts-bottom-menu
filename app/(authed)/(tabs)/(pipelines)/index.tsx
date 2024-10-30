@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Href, useFocusEffect, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
@@ -40,6 +40,8 @@ export default function PipelineScreen() {
   const [pipelines, setPipelines] = useState<PipelineScreenProps[]>([]);
   const [filteredPipelines, setFilteredPipelines] = useState<PipelineScreenProps[]>([]);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
@@ -60,6 +62,10 @@ export default function PipelineScreen() {
   const handleSearch = (keyword: string) => {
     if (keyword === "") {
       setFilteredPipelines(pipelines);
+
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: true });
+      }
     } else {
       const filtered = pipelines.filter((item) => {
         return item.nama.toLowerCase().includes(keyword.toLowerCase());
@@ -91,7 +97,7 @@ export default function PipelineScreen() {
           />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
           {filteredPipelines.length > 0 ? (filteredPipelines.map((item, index) => (
             <View style={styles.pipelineContainer} key={index}>
               <View style={styles.pipelineContent}>
