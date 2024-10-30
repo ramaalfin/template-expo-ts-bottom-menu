@@ -34,19 +34,14 @@ type LoginProps = {
 export default function Login() {
     const { control, handleSubmit, formState: { errors } } = useForm<LoginProps>();
     const [showPassword, setShowPassword] = useState(false);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const { login, isLoading } = useAuth();
+    const { errorMessage, login, isLoading } = useAuth();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
     const submit = async ({ email, password }: LoginProps) => {
-        try {
-            await login(email, password);
-        } catch (error) {
-            setErrorMessage("Terjadi kesalahan, silahkan coba lagi");
-        }
+        await login(email, password);
     };
 
     return (
