@@ -119,6 +119,7 @@ export const CalendarComponent = ({ activities }: any) => {
                                         !isSelected && isCurrentMonth && { color: '#000' },
                                         !isSelected && isCurrentMonth && isWeekend && styles.weekendText,
                                         !isSelected && !isCurrentMonth && { color: '#999' },
+                                        isSelected && !isCurrentMonth && { color: '#fff' },
                                         !isSelected && isCurrentDay && styles.todayText,
                                     ]}
                                 >

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import {
@@ -6,7 +6,7 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import { Href, useLocalSearchParams, useRouter } from "expo-router";
+import { Href, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 
 // context
 import { useAuth } from "~/context/AuthContext";
@@ -42,8 +42,13 @@ interface PipelineScreenProps {
     sys_user_checker: {
         nama: string;
     };
+    target: string;
     mst_assignment: {
-        target: string;
+        mst_goalsetting: {
+            mst_segment: {
+                segment: string;
+            };
+        };
     }
     keterangan: string;
     trx_activity: [
@@ -78,22 +83,24 @@ export default function DetailPipeline() {
 
     const [pipeline, setPipeline] = useState<PipelineScreenProps>();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetchFundingById({
-                token: accessToken.token,
-                id_funding: Number(id)
-            });
+    useFocusEffect(
+        useCallback(() => {
+            const fetchData = async () => {
+                const response = await fetchFundingById({
+                    token: accessToken.token,
+                    id_funding: Number(id)
+                });
 
-            if (response.data.code === 200) {
-                setPipeline(response.data.data);
-            } else {
-                console.log("Gagal mengambil data");
+                if (response.data.code === 200) {
+                    setPipeline(response.data.data);
+                } else {
+                    console.log("Gagal mengambil data");
+                }
             }
-        }
 
-        fetchData();
-    }, []);
+            fetchData();
+        }, [accessToken])
+    );
 
     return (
         <>
@@ -108,7 +115,7 @@ export default function DetailPipeline() {
                             <Text style={styles.titleContent}>Profil Nasabah</Text>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Segment</Text>
-                                <Text style={styles.textContent}>{pipeline?.mst_segment.segment || "-"}</Text>
+                                <Text style={styles.textContent}>{pipeline?.mst_assignment?.mst_goalsetting?.mst_segment?.segment || "-"}</Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>NIK</Text>
@@ -153,7 +160,7 @@ export default function DetailPipeline() {
                             <View style={{ marginBottom: 10 }}>
                                 <Text style={styles.textContent}>Target</Text>
                                 <Text style={styles.textContent}>
-                                    Rp. {pipeline?.mst_assignment.target.replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "-"}
+                                    Rp. {pipeline?.target.replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "-"}
                                 </Text>
                             </View>
                             <View style={{ marginBottom: 10 }}>

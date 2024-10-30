@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -23,7 +23,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import { Href, useRouter } from "expo-router";
+import { Href, useFocusEffect, useRouter } from "expo-router";
 
 // components
 import * as Progress from 'react-native-progress';
@@ -55,7 +55,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // fetch data
       const response = await dashboardByIdUser({
         token: accessToken.token,
         idUser: user.id_user,
@@ -71,22 +70,24 @@ export default function HomeScreen() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetchActivitiesByIdUserToday({
-        token: accessToken.token,
-        idUser: user.id_user,
-      });
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        const response = await fetchActivitiesByIdUserToday({
+          token: accessToken.token,
+          idUser: user.id_user,
+        });
 
-      if (response.data.code === 200) {
-        setActivityToday(response.data.data);
-      } else {
-        console.log("Gagal mengambil data");
+        if (response.data.code === 200) {
+          setActivityToday(response.data.data);
+        } else {
+          console.log("Gagal mengambil data");
+        }
       }
-    }
 
-    fetchData();
-  }, []);
+      fetchData();
+    }, [accessToken, user])
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
@@ -142,7 +143,11 @@ export default function HomeScreen() {
                 </View>
               </View>
 
-              <Progress.Bar progress={0.5} width={240} color="#9CEF39" style={{ marginTop: 15 }} />
+              <Progress.Bar
+                progress={data?.pctClosing ? data?.pctClosing / 100 : 0}
+                width={240}
+                color="#9CEF39"
+                style={{ marginTop: 15 }} />
 
               <View
                 style={{
@@ -210,7 +215,11 @@ export default function HomeScreen() {
                 </View>
               </View>
 
-              <Progress.Bar progress={0.5} width={240} color="#9A3EEC" style={{ marginTop: 15 }} />
+              <Progress.Bar
+                progress={data?.pctPending ? data?.pctPending / 100 : 0}
+                width={240}
+                color="#9A3EEC"
+                style={{ marginTop: 15 }} />
 
               <View
                 style={{

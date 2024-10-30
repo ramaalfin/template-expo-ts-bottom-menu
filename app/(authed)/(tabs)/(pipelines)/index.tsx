@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Href, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { Href, useFocusEffect, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   heightPercentageToDP as hp,
@@ -9,7 +9,7 @@ import {
 import { useAuth } from "~/context/AuthContext";
 
 // services
-import { fetchAllFunding } from "~/services/mst/fundings";
+import { fetchAllFunding, fetchFundingByIdUser } from "~/services/mst/fundings";
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -25,35 +25,35 @@ interface PipelineScreenProps {
   mst_prospect: {
     prospect: string;
   }
-  mst_assignment: {
-    target: string;
-  }
+  target: string;
   trx_activity: {
     mst_hasil: {
       hasil: string;
     }
-  }
+  }[]
 }
 
 export default function PipelineScreen() {
   const navigation = useRouter();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
 
   const [pipelines, setPipelines] = useState<PipelineScreenProps[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetchAllFunding(accessToken.token);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await fetchFundingByIdUser(user.id_user, accessToken.token,);
 
-      if (response.data.code === 200) {
-        setPipelines(response.data.data);
-      } else {
-        console.log("Gagal mengambil data");
-      }
-    }
+          setPipelines(response.data.data);
+        } catch (error) {
+          console.log(error);
+        }
+      };
 
-    fetchData();
-  }, []);
+      fetchData();
+    }, [accessToken])
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
@@ -88,11 +88,11 @@ export default function PipelineScreen() {
                   source={require("~/assets/icon/ic_kartu_sq.png")}
                   style={{ width: 45, height: 45 }}
                 />
-                <View style={{ width: "90%" }}>
+                <View style={{ width: "87%" }}>
                   <Text style={styles.titleText}>{item.nama} - {item.alamat}</Text>
-                  <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                  <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                  <Text style={styles.statusHasil}>Top Up</Text>
+                  <Text style={styles.prospectStatus}>{item?.mst_prospect?.prospect || "-"}</Text>
+                  <Text style={styles.nominal}>Rp. {item?.target.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Text>
+                  <Text style={styles.statusHasil}>{item?.trx_activity[0]?.mst_hasil?.hasil || "-"}</Text>
                 </View>
               </View>
 

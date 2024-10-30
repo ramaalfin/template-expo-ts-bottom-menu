@@ -76,7 +76,7 @@ interface StatusSegmentProps {
 }
 
 interface ApplicationProps {
-    id_application: number;
+    id_application: string;
     application: string;
 }
 
@@ -208,12 +208,15 @@ export default function InputPipeline() {
 
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(Number(id_application), accessToken?.token);
-
-        if (response.data.code === 200) {
-            setProducts(response.data.data);
+        if (id_application) {
+            const response = await fetchProductByIdApplication(Number(id_application), accessToken?.token);
+            if (response.data.code === 200) {
+                setProducts(response.data.data);
+            } else {
+                console.log("Gagal mengambil data produk");
+            }
         } else {
-            console.log("Gagal mengambil data produk");
+            console.log("id_application is undefined");
         }
     };
 
@@ -279,17 +282,22 @@ export default function InputPipeline() {
     const dataLevelPipeline = pipelines.map((item) => ({ label: item.prospect, value: item.id_prospect }));
     const dataApproval = approvals.map((item) => ({ label: item.nama, value: item.id_user }));
 
-    const ref = useRef<ScrollView>(null);
-    useScrollToTop(
-        useRef({
-            scrollToTop: () => ref.current?.scrollTo({ y: 100 }),
-        })
-    );
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({ y: 0, animated: true });
+        }
+    }, []);
 
     const nextStep = (data: InputPipelineProps) => {
         if (activeStep === 0) {
             setFormData((prev: any) => ({ ...prev, ...data }));
             setActiveStep(1);
+
+            if (scrollViewRef.current) {
+                scrollViewRef.current.scrollTo({ y: 0, animated: true });
+            }
         }
     }
 
@@ -304,9 +312,10 @@ export default function InputPipeline() {
 
         const dataFunding = {
             id_assignment: Number(allData.segment),
-            id_product: Number(allData.jenis_produk),
-            id_segment: Number(allData.status_segment),
+            id_product: Number(allData.nama_produk),
+            id_sts_segment: Number(allData.status_segment),
             id_sub_sektor: Number(allData.sub_sector),
+            id_prospect: Number(allData.level_pipeline),
             nik: allData.nik,
             nama: allData.nama_lengkap,
             alamat: allData.alamat_lengkap,
@@ -350,7 +359,7 @@ export default function InputPipeline() {
                     stepCount={2}
                 />
 
-                <ScrollView showsVerticalScrollIndicator={false} ref={ref}>
+                <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                     <View style={{ marginTop: 20 }}>
                         {/* STEP 1 */}
                         {activeStep === 0 && (
@@ -435,6 +444,9 @@ export default function InputPipeline() {
                                                     style={styles.input}
                                                     inputMode="numeric"
                                                 />
+                                                <Text style={styles.textWarning}>
+                                                    <Text style={{ color: "red" }}>*</Text> NIK harus 16 karakter
+                                                </Text>
                                             </View>
                                         )}
                                     />
@@ -972,6 +984,11 @@ const styles = StyleSheet.create({
     btnText: {
         fontSize: 14,
         fontFamily: "Inter_400Regular",
+    },
+    textWarning: {
+        fontSize: 11,
+        fontFamily: "Inter_400Regular",
+        marginTop: 5,
     },
     rupiahText: {
         position: "absolute",

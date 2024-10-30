@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 
@@ -37,7 +37,7 @@ import StepIndicator from 'react-native-step-indicator';
 
 interface DetailInputPipelineProps {
     id_assignment: string;
-    id_segment: string;
+    id_sts_segment: string;
     nik: string;
     nama_lengkap: string;
     telepon: string;
@@ -148,7 +148,7 @@ const nama_bulan = [
 
 export default function DetailInputPipeline() {
     const { id } = useLocalSearchParams();
-    const { control, handleSubmit, formState: { errors }, setValue } = useForm<DetailInputPipelineProps>();
+    const { control, handleSubmit, formState: { errors }, getValues, setValue } = useForm<DetailInputPipelineProps>();
     const { accessToken, isLoading, user } = useAuth();
     const navigation = useRouter();
 
@@ -167,6 +167,13 @@ export default function DetailInputPipeline() {
     const [approvals, setApprovals] = useState<ApprovalProps[]>([]);
 
     const [isSuccess, setIsSuccess] = useState(false);
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({ y: 0, animated: true });
+        }
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -175,22 +182,29 @@ export default function DetailInputPipeline() {
                 token: accessToken?.token
             });
 
-            console.log(response.data.data);
-
             if (response.data.code === 200) {
-                setValue("id_assignment", response.data.data.id_assignment.toString());
-                setValue("id_segment", response.data.data.id_segment.toString());
-                setValue("jenis_produk", response.data.data.id_product.toString());
-                setValue("sub_sector", response.data.data.id_sub_sektor.toString());
-                setValue("nik", response.data.data.nik);
-                setValue("nama_lengkap", response.data.data.nama);
-                setValue("telepon", response.data.data.no_telp);
-                setValue("email", response.data.data.email);
-                setValue("alamat_lengkap", response.data.data.alamat);
-                setValue("level_pipeline", response.data.data.id_prospect.toString());
-                setValue("approval", response.data.data.id_checker.toString());
-                setValue("potensi_dana", response.data.data.target.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
-                setValue("keterangan", response.data.data.keterangan);
+                const data = response.data.data;
+                setValue("id_assignment", data?.id_assignment || "");
+                setValue("id_sts_segment", data?.mst_sts_segment?.id_sts_segment || "");
+                setValue("nik", data?.nik || "");
+                setValue("nama_lengkap", data?.nama || "");
+                setValue("telepon", data?.no_telp || "");
+                setValue("email", data?.email || "");
+                setValue("alamat_lengkap", data?.alamat || "");
+
+                setValue("jenis_produk", data?.mst_product?.mst_application?.id_application || "");
+                setValue("nama_produk", data?.mst_product?.id_product || "");
+                setValue("sector", data?.mst_sub_sektor?.mst_sektor?.id_sektor || "");
+                setValue("sub_sector", data?.mst_sub_sektor?.id_sub_sektor || "");
+                setValue("level_pipeline", data?.id_prospect || "");
+                setValue("approval", data?.id_checker || "");
+                setValue("potensi_dana", data?.target?.replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "");
+                setValue("keterangan", data?.keterangan || "");
+
+                const product = await fetchProductByIdApplication(data.mst_product.mst_application.id_application, accessToken?.token);
+                const subSector = await fetchSubSectorByIdSector(data.mst_sub_sektor.mst_sektor.id_sektor, accessToken?.token);
+                setProducts(product.data.data);
+                setSubSectors(subSector.data.data);
             } else {
                 console.log("Gagal mengambil data");
             }
@@ -239,7 +253,7 @@ export default function DetailInputPipeline() {
 
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(Number(id_application), accessToken?.token);
+        const response = await fetchProductByIdApplication(id_application ? Number(id_application) : 0, accessToken?.token);
 
         if (response.data.code === 200) {
             setProducts(response.data.data);
@@ -314,6 +328,10 @@ export default function DetailInputPipeline() {
         if (activeStep === 0) {
             setFormData((prev: any) => ({ ...prev, ...data }));
             setActiveStep(1);
+
+            if (scrollViewRef.current) {
+                scrollViewRef.current.scrollTo({ y: 0, animated: true });
+            }
         }
     }
 
@@ -328,9 +346,10 @@ export default function DetailInputPipeline() {
 
         const dataFunding = {
             id_assignment: Number(allData.id_assignment),
-            id_product: Number(allData.jenis_produk),
-            id_segment: Number(allData.id_segment),
+            id_product: Number(allData.nama_produk),
+            id_sts_segment: Number(allData.id_sts_segment),
             id_sub_sektor: Number(allData.sub_sector),
+            id_prospect: Number(allData.level_pipeline),
             nik: allData.nik,
             nama: allData.nama_lengkap,
             alamat: allData.alamat_lengkap,
@@ -378,7 +397,7 @@ export default function DetailInputPipeline() {
                     stepCount={2}
                 />
 
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
                     <View style={{ marginTop: 20 }}>
                         {/* STEP 1 */}
                         {activeStep === 0 && (
@@ -416,7 +435,7 @@ export default function DetailInputPipeline() {
                                     <Text style={styles.formLabel}>Status Segment</Text>
                                     <Controller
                                         control={control}
-                                        name="id_segment"
+                                        name="id_sts_segment"
                                         rules={{ required: "Segment wajib diisi" }}
                                         render={({ field: { onChange, value } }) => (
                                             <View style={{ position: "relative" }}>
@@ -438,7 +457,7 @@ export default function DetailInputPipeline() {
                                             </View>
                                         )}
                                     />
-                                    {errors.id_segment && <Text style={styles.errorField}>{errors.id_segment.message}</Text>}
+                                    {errors.id_sts_segment && <Text style={styles.errorField}>{errors.id_sts_segment.message}</Text>}
                                 </View>
 
                                 <View style={styles.formItem}>
@@ -463,6 +482,9 @@ export default function DetailInputPipeline() {
                                                     style={styles.input}
                                                     inputMode="numeric"
                                                 />
+                                                <Text style={styles.textWarning}>
+                                                    <Text style={{ color: "red" }}>*</Text> NIK harus 16 karakter
+                                                </Text>
                                             </View>
                                         )}
                                     />
@@ -896,7 +918,7 @@ export default function DetailInputPipeline() {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </View >
     )
 }
 
@@ -999,6 +1021,11 @@ const styles = StyleSheet.create({
     btnText: {
         fontSize: 14,
         fontFamily: "Inter_400Regular",
+    },
+    textWarning: {
+        fontSize: 11,
+        fontFamily: "Inter_400Regular",
+        marginTop: 5,
     },
     rupiahText: {
         position: "absolute",

@@ -4,8 +4,9 @@ import axios from "axios";
 interface DataFundingProps {
   id_assignment: number;
   id_product: number;
-  id_segment: number;
+  id_sts_segment: number;
   id_sub_sektor: number;
+  id_prospect: number;
   nik: string;
   nama: string;
   alamat: string;
