@@ -9,14 +9,14 @@ import {
 import { useAuth } from "~/context/AuthContext";
 
 // services
-import { fetchAllFunding, fetchFundingByIdUser } from "~/services/mst/fundings";
+import { fetchFundingByIdUser } from "~/services/mst/fundings";
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // components
 import Topbar from "~/components/TopBar";
-import { Input } from "~/components/ui/input";
+import SearchBar from "~/components/SearchBar";
 
 interface PipelineScreenProps {
   id_funding: number;
@@ -38,6 +38,7 @@ export default function PipelineScreen() {
   const { accessToken, user } = useAuth();
 
   const [pipelines, setPipelines] = useState<PipelineScreenProps[]>([]);
+  const [filteredPipelines, setFilteredPipelines] = useState<PipelineScreenProps[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -46,6 +47,7 @@ export default function PipelineScreen() {
           const response = await fetchFundingByIdUser(user.id_user, accessToken.token,);
 
           setPipelines(response.data.data);
+          setFilteredPipelines(response.data.data);
         } catch (error) {
           console.log(error);
         }
@@ -55,6 +57,18 @@ export default function PipelineScreen() {
     }, [accessToken])
   );
 
+  const handleSearch = (keyword: string) => {
+    if (keyword === "") {
+      setFilteredPipelines(pipelines);
+    } else {
+      const filtered = pipelines.filter((item) => {
+        return item.nama.toLowerCase().includes(keyword.toLowerCase());
+      });
+
+      setFilteredPipelines(filtered);
+    }
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
@@ -63,10 +77,7 @@ export default function PipelineScreen() {
 
       <View style={styles.container}>
         <View style={{ position: "relative" }}>
-          <Input
-            placeholder="Cari Nama Nasabah"
-            style={styles.input}
-          />
+          <SearchBar onSearch={handleSearch} />
 
           <MaterialIcons
             name="search"
@@ -81,7 +92,7 @@ export default function PipelineScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          {pipelines.length > 0 ? (pipelines.map((item, index) => (
+          {filteredPipelines.length > 0 ? (filteredPipelines.map((item, index) => (
             <View style={styles.pipelineContainer} key={index}>
               <View style={styles.pipelineContent}>
                 <Image

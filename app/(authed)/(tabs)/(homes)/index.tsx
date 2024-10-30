@@ -94,12 +94,9 @@ export default function HomeScreen() {
       {/* topbar */}
       <View style={styles.topBar}>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View style={{ width: wp("45%") }}>
+          <View style={{ width: wp("50%") }}>
             <Text style={styles.topBarPrimaryText}>
-              Hi,{" "}
-              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                {user.nama}
-              </Text>
+              {user.nama}
             </Text>
             <Text style={styles.topBarSecondaryText}>OPS. KC Cimahi Baros</Text>
           </View>
@@ -362,7 +359,7 @@ const styles = StyleSheet.create({
   topBarPrimaryText: {
     color: "white",
     fontSize: 18,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_600SemiBold"
   },
   topBarSecondaryText: {
     color: "white",

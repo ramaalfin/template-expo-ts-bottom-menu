@@ -107,6 +107,23 @@ export const dashboardByIdUser = async ({
   );
 };
 
+export const fetchPemutusByIdUser = async ({
+  token,
+  idUser,
+}: {
+  token: string;
+  idUser: number;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/pemutus/${idUser}`,
+    { headers }
+  );
+};
+
 export const updateResultActivityById = async ({
   token,
   id,

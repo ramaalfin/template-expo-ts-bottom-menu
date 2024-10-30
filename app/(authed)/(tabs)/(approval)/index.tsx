@@ -1,205 +1,202 @@
+import { useEffect, useState } from "react";
 import { Href, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+import {
+  widthPercentageToDP as wp,
+} from "react-native-responsive-screen";
+
+import { useAuth } from "~/context/AuthContext";
+
 // icons
+import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { fetchPemutusByIdUser } from "~/services/trx/activity";
 
 // components
-import Topbar from "~/components/TopBar";
-import { Input } from "~/components/ui/input";
 
 export default function ApprovalScreen() {
+  const { accessToken, user } = useAuth();
+  const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
+  const [approval, setApproval] = useState([]);
   const navigation = useRouter();
 
+  useEffect(() => {
+    user?.photo ? setPhoto({ uri: user.photo }) : setPhoto(require("~/assets/images/nophoto.jpg"));
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetchPemutusByIdUser({
+        token: accessToken.token,
+        idUser: user.id_user
+      });
+
+      if (response.status === 200) {
+        setApproval(response.data.data.data);
+      } else {
+        console.log("Gagal mengambil data");
+      }
+    }
+
+    fetchData();
+  }, []);
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#F48120" }}>
-      {/* Header */}
-      <Topbar titleBar="Approval" />
-      {/* header */}
+    <View style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
+      <View style={styles.topBar}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ width: wp("50%") }}>
+            <Text style={styles.topBarPrimaryText}>
+              {user.nama}
+            </Text>
+            <Text style={styles.topBarSecondaryText}>OPS. KC Cimahi Baros</Text>
+          </View>
 
-      <View style={styles.container}>
-        <View style={{ position: "relative" }}>
-          <Input
-            placeholder="Cari Nama Nasabah"
-            style={styles.input}
-          />
+          <View style={{ flexDirection: "row", gap: 15 }}>
+            <TouchableOpacity onPress={() => navigation.push("/notification")}>
+              <Ionicons name="notifications" size={27} color="#FFFFFF" />
+            </TouchableOpacity>
 
-          <MaterialIcons
-            name="search"
-            size={24}
-            color="#707070"
-            style={{
-              position: "absolute",
-              top: hp("2%"),
-              right: 25
-            }}
-          />
+            <Image
+              source={photo}
+              resizeMode="cover"
+              style={styles.photoProfile}
+            />
+          </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.specialRateContainer}>
-            <View style={styles.specialRateContent}>
-              <Image
-                source={require("~/assets/icon/ic_koin_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
+        <Text style={styles.topBarSecondaryText}>Your progress</Text>
 
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        <View style={styles.approvalContainer}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={{ height: hp("65%") }}
+          >
+            {approval?.length > 0 ? (approval?.map((item: any, index: number) => (
               <TouchableOpacity
-                style={styles.shareContainer}
-              // onPress={() => navigation.push('/(approval)/detail/1' as Href<'/(approval)/detail/1'>)}
+                key={index}
+                style={styles.menu}
+              // onPress={() => navigation.push(
+              //   `/update/${item.id_activity}` as Href<"update/[id]">,
+              // )}
               >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
+                <Image
+                  source={require("~/assets/icon/ic_notif_kuning.png")}
+                  style={{ width: 30, height: 30 }}
                 />
+                <View style={styles.menuItem}>
+                  <Text style={styles.menuText}>
+                    {item.mst_funding.nama} - {item.deskripsi} - {item.mst_kegiatan.kegiatan}
+                  </Text>
+
+                  <View
+                    style={{
+                      backgroundColor: "#1D4592",
+                      borderRadius: 20,
+                      padding: 2,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="keyboard-arrow-right"
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+            ))) : (
+              <View style={{
+                // place content in the center
+                height: hp("65%"),
+                justifyContent: "center",
+                alignItems: "center",
+
+              }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
+                    color: "#707070",
+                    textAlign: "center",
+                  }}
+                >
+                  Tidak ada approval
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
       </View>
-
-      <TouchableOpacity
-        onPress={() => navigation.push(
-          `/(approval)/add` as Href<"/(approval)/add">
-        )}
-
-        style={styles.addContainer}
-      >
-        <Image
-          resizeMode="cover"
-          source={require("~/assets/icon/add-icon.png")}
-          style={{
-            width: 25,
-            height: 25,
-          }}
-        />
-      </TouchableOpacity>
     </View >
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFAFA",
-    marginTop: hp("1%"),
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 15,
+  topBar: {
+    backgroundColor: "#F48120",
+    paddingHorizontal: 25,
+    paddingVertical: 25,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    height: hp("30%"),
   },
-  specialRateContainer: {
+  topBarPrimaryText: {
+    color: "white",
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold"
+  },
+  topBarSecondaryText: {
+    color: "white",
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+  },
+  photoProfile: {
+    width: 80,
+    height: 80,
+    borderRadius: 75,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+
+  approvalContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginTop: 20,
     borderRadius: 20,
-    backgroundColor: "#fff",
-    padding: 10,
-    marginHorizontal: 15,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
-    marginBottom: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  specialRateContent: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  titleText: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 15,
-    color: '#000',
-    marginBottom: 5,
-  },
-  prospectStatus: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
-    color: '#F48120',
-    marginBottom: 2,
-  },
-  nominal: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: '#000',
-    marginBottom: 2,
-  },
-  statusHasil: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
-    color: '#000',
-    marginBottom: 2,
-  },
-
-  shareContainer: {
+  menu: {
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderRadius: 20,
-    width: 130,
+    gap: 10,
+    paddingVertical: 5,
+  },
+  menuItem: {
+    flexDirection: "row",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#707070",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
+    width: wp("60%"),
   },
-  textShare: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
+  menuText: {
     color: "#707070",
-  },
-  iconShare: {
-    backgroundColor: "#1D4592",
-    borderRadius: 20,
-    paddingHorizontal: 2,
-  },
-
-  input: {
-    marginTop: 5,
-    marginBottom: 15,
-    marginHorizontal: 15,
-    borderColor: "#979797",
     fontSize: 13,
-    fontFamily: "Inter_400Regular"
-  },
-
-  addContainer: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
-    padding: 10,
-    backgroundColor: "#FFF",
-    borderRadius: 50,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    fontFamily: "Inter_400Regular",
+    marginVertical: 10,
+    width: wp("50%"),
   },
 });

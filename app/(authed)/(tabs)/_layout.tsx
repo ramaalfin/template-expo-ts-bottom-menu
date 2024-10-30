@@ -46,10 +46,10 @@ export default function TabLayout() {
               <PipelineIconInactive width={35} height={27} />
             ),
           tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -20
+            marginLeft: user.id_jabatan === 8 ? 0 : -30
           },
           tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -20
+            marginLeft: user.id_jabatan === 8 ? 0 : -30
           },
           headerShown: false,
         }}
@@ -81,34 +81,12 @@ export default function TabLayout() {
               <AktivitasIconInactive width={35} height={28} />
             ),
           tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -25
+            marginLeft: user.id_jabatan === 8 ? 0 : -45
           },
           tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -25
+            marginLeft: user.id_jabatan === 8 ? 0 : -45
           },
           headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="(special-rate-pemutus)"
-        options={{
-          title: "Special Rate",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <SpecialRateIconActive width={35} height={27} />
-            ) : (
-              <SpecialRateIconInactive width={35} height={27} />
-            ),
-          headerShown: false,
-          tabBarStyle: {
-            display: user.id_jabatan !== 8 ? "flex" : "none",
-          },
-          tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -15
-          },
-          tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -15
-          },
         }}
       />
       <Tabs.Screen
@@ -124,7 +102,29 @@ export default function TabLayout() {
           headerShown: false,
           tabBarStyle: {
             display: user.id_jabatan !== 8 ? "flex" : "none",
-            marginRight: -10
+          },
+          tabBarIconStyle: {
+            marginLeft: user.id_jabatan === 8 ? 0 : -55
+          },
+          tabBarLabelStyle: {
+            marginLeft: user.id_jabatan === 8 ? 0 : -55
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="(special-rate-pemutus)"
+        options={{
+          title: "Special Rate",
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <SpecialRateIconActive width={35} height={27} />
+            ) : (
+              <SpecialRateIconInactive width={35} height={27} />
+            ),
+          headerShown: false,
+          tabBarStyle: {
+            display: user.id_jabatan !== 8 ? "flex" : "none",
+            marginLeft: -25,
           },
         }}
       />
@@ -139,7 +139,10 @@ export default function TabLayout() {
               <AkunIconInactive width={28} height={28} />
             ),
           headerShown: false,
-          tabBarStyle: { marginRight: -2 },
+          tabBarStyle: {
+            marginLeft: -8,
+            marginRight: -2
+          },
         }}
       />
     </Tabs>
