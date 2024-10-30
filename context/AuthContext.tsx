@@ -13,6 +13,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     user: {
         id_user: number;
+        id_jabatan: number;
         email: string;
         nama: string;
         photo: string;
@@ -40,6 +41,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState({
         id_user: 0,
+        id_jabatan: 0,
         email: '',
         nama: '',
         photo: '',
@@ -111,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Reset state
             setUser({
                 id_user: 0,
+                id_jabatan: 0,
                 email: '',
                 nama: '',
                 photo: '',

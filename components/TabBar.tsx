@@ -3,6 +3,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useAuth } from "~/context/AuthContext";
 
 const TabBar = ({ state, descriptors, navigation }: any) => {
   return (
@@ -28,6 +29,11 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
             ? options.tabBarIconStyle
             : null;
 
+        const tabStyle =
+          options.tabBarStyle !== undefined
+            ? options.tabBarStyle
+            : null;
+
         const onPress = () => {
           const event = navigation.emit({
             type: "tabPress",
@@ -47,6 +53,8 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
           });
         };
 
+        const { user } = useAuth();
+
         return (
           <TouchableOpacity
             key={index}
@@ -56,7 +64,7 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
             testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={styles.tabBarItem}
+            style={[styles.tabBarItem, tabStyle]}
           >
             {iconStyle ? (
               <View style={iconStyle}>{icon}</View>
@@ -68,7 +76,7 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
               style={{
                 color: isFocused ? "#F48120" : "#707070",
                 marginTop: 5,
-                fontSize: 12,
+                fontSize: user.id_jabatan === 8 ? 12 : 11,
                 fontFamily: "Inter_400Regular",
                 ...options.tabBarLabelStyle,
               }}
@@ -80,7 +88,7 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
               <View
                 style={{
                   height: 5,
-                  width: wp("15%"),
+                  width: user.id_jabatan === 8 ? wp("15%") : wp("13%"),
                   backgroundColor: "#F48120",
                   borderRadius: 10,
                   marginTop: 5,
@@ -117,5 +125,9 @@ const styles = StyleSheet.create({
     elevation: 15,
   },
 
-  tabBarItem: { flex: 1, justifyContent: "center", alignItems: "center" },
+  tabBarItem: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

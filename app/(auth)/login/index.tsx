@@ -6,7 +6,7 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import * as SecureStore from 'expo-secure-store';
+import { useAuth } from "~/context/AuthContext";
 
 // icons
 import { Feather } from "@expo/vector-icons";
@@ -24,7 +24,6 @@ import {
     TouchableOpacity,
     ActivityIndicator,
 } from "react-native";
-import { useAuth } from "~/context/AuthContext";
 
 type LoginProps = {
     email: string;

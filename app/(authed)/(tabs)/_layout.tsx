@@ -14,8 +14,11 @@ import { PipelineIconActive } from "~/assets/menu/PipelineIconActive";
 import { PipelineIconInactive } from "~/assets/menu/PipelineIconInactive";
 import { SpecialRateIconActive } from "~/assets/menu/SpecialRateIconActive";
 import { SpecialRateIconInactive } from "~/assets/menu/SpecialRateIconInactive";
+import { useAuth } from "~/context/AuthContext";
 
 export default function TabLayout() {
+  const { user } = useAuth();
+
   return (
     <Tabs tabBar={(props) => <TabBar {...props} />}>
       <Tabs.Screen
@@ -29,6 +32,7 @@ export default function TabLayout() {
               <HomeIconInactive width={27} height={30} />
             ),
           headerShown: false,
+          tabBarStyle: { marginLeft: -2 },
         }}
       />
       <Tabs.Screen
@@ -42,10 +46,10 @@ export default function TabLayout() {
               <PipelineIconInactive width={35} height={27} />
             ),
           tabBarIconStyle: {
-            marginLeft: -15
+            marginLeft: user.id_jabatan === 8 ? 0 : -20
           },
           tabBarLabelStyle: {
-            marginLeft: -15
+            marginLeft: user.id_jabatan === 8 ? 0 : -20
           },
           headerShown: false,
         }}
@@ -61,6 +65,9 @@ export default function TabLayout() {
               <SpecialRateIconInactive width={35} height={27} />
             ),
           headerShown: false,
+          tabBarStyle: {
+            display: user.id_jabatan === 8 ? "flex" : "none",
+          },
         }}
       />
       <Tabs.Screen
@@ -74,18 +81,57 @@ export default function TabLayout() {
               <AktivitasIconInactive width={35} height={28} />
             ),
           tabBarIconStyle: {
-            marginRight: -15
+            marginLeft: user.id_jabatan === 8 ? 0 : -25
           },
           tabBarLabelStyle: {
-            marginRight: -15
+            marginLeft: user.id_jabatan === 8 ? 0 : -25
           },
           headerShown: false,
         }}
       />
       <Tabs.Screen
+        name="(special-rate-pemutus)"
+        options={{
+          title: "Special Rate",
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <SpecialRateIconActive width={35} height={27} />
+            ) : (
+              <SpecialRateIconInactive width={35} height={27} />
+            ),
+          headerShown: false,
+          tabBarStyle: {
+            display: user.id_jabatan !== 8 ? "flex" : "none",
+          },
+          tabBarIconStyle: {
+            marginLeft: user.id_jabatan === 8 ? 0 : -15
+          },
+          tabBarLabelStyle: {
+            marginLeft: user.id_jabatan === 8 ? 0 : -15
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="(approval)"
+        options={{
+          title: "Approval",
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <SpecialRateIconActive width={35} height={27} />
+            ) : (
+              <SpecialRateIconInactive width={35} height={27} />
+            ),
+          headerShown: false,
+          tabBarStyle: {
+            display: user.id_jabatan !== 8 ? "flex" : "none",
+            marginRight: -10
+          },
+        }}
+      />
+      <Tabs.Screen
         name="(accounts)"
         options={{
-          title: "Akun",
+          title: "Profil",
           tabBarIcon: ({ focused }) =>
             focused ? (
               <AkunIconActive width={28} height={28} />
@@ -93,6 +139,7 @@ export default function TabLayout() {
               <AkunIconInactive width={28} height={28} />
             ),
           headerShown: false,
+          tabBarStyle: { marginRight: -2 },
         }}
       />
     </Tabs>
