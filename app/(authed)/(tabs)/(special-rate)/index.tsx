@@ -1,8 +1,15 @@
-import { Href, useRouter } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+
+import { Href, useFocusEffect, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchSpecialRate } from "~/services/trx/special-rate";
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -10,9 +17,65 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 // components
 import Topbar from "~/components/TopBar";
 import { Input } from "~/components/ui/input";
+import SearchBar from "~/components/SearchBar";
+
+interface SpecialRateProps {
+  id_special_rate: number;
+  nama: string;
+  nominal: string;
+  mst_sts_special_rate: {
+    sts_special_rate: string;
+  }
+  mst_prospect: {
+    prospect: string;
+  }
+}
 
 export default function SpesialRateScreen() {
+  const { accessToken } = useAuth();
   const navigation = useRouter();
+
+  const [specialRate, setSpecialRate] = useState<SpecialRateProps[]>([]);
+  const [filteredSpecialRate, setFilteredSpecialRate] = useState<SpecialRateProps[]>([]);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await fetchSpecialRate({ token: accessToken.token });
+
+          if (response.data.code === 200) {
+            setSpecialRate(response.data.data.data);
+            setFilteredSpecialRate(response.data.data.data);
+          } else {
+            console.log("Gagal mengambil data");
+          }
+        } catch (error) {
+          console.log("Gagal mengambil data");
+        }
+      };
+
+      fetchData();
+    }, [accessToken])
+  );
+
+  const handleSearch = (keyword: string) => {
+    if (keyword === "") {
+      setFilteredSpecialRate(specialRate);
+
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: true });
+      }
+    } else {
+      const filtered = specialRate.filter((item) => {
+        return item.nama.toLocaleLowerCase().includes(keyword.toLocaleLowerCase());
+      });
+
+      setFilteredSpecialRate(filtered);
+    }
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
@@ -22,10 +85,7 @@ export default function SpesialRateScreen() {
 
       <View style={styles.container}>
         <View style={{ position: "relative" }}>
-          <Input
-            placeholder="Cari Nama Nasabah"
-            style={styles.input}
-          />
+          <SearchBar onSearch={handleSearch} />
 
           <MaterialIcons
             name="search"
@@ -39,39 +99,32 @@ export default function SpesialRateScreen() {
           />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.specialRateContainer}>
-            <View style={styles.specialRateContent}>
-              <Image
-                source={require("~/assets/icon/ic_koin_sq.png")}
-                style={{ width: 45, height: 45 }}
-              />
+        <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
+          {filteredSpecialRate.length > 0 ? (filteredSpecialRate.map((item, index) => (
+            <View style={styles.specialRateContainer} key={index}>
+              <View style={styles.specialRateContent}>
+                <Image
+                  source={require("~/assets/icon/ic_koin_sq.png")}
+                  style={{ width: 45, height: 45 }}
+                />
 
-              <View style={{ width: "90%" }}>
-                <Text style={styles.titleText}>Fajri Akbar - Jl M. Nawi</Text>
-                <Text style={styles.prospectStatus}>Hot Prospect</Text>
-                <Text style={styles.nominal}>Rp. 1.700.000</Text>
-                <Text style={styles.statusHasil}>Top Up</Text>
+                <View style={{ width: "90%" }}>
+                  <Text style={styles.titleText}>{item?.nama}</Text>
+                  <Text style={styles.prospectStatus}>{item?.mst_prospect?.prospect || "-"}</Text>
+                  <Text style={styles.nominal}>Rp. {item?.nominal.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Text>
+                  <Text style={styles.statusHasil}>{item?.mst_sts_special_rate?.sts_special_rate || "-"}</Text>
+                </View>
               </View>
             </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={styles.shareContainer}
-              // onPress={() => navigation.push('/(special-rate)/detail/1' as Href<'/(special-rate)/detail/1'>)}
-              >
-                <Text style={styles.textShare}>
-                  Lihat Detail
-                </Text>
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={styles.iconShare}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+          ))) : (
+            <Text style={{
+              textAlign: "center",
+              marginTop: 20,
+              fontFamily: "Inter_400Regular",
+            }}>
+              Data tidak ditemukan
+            </Text>
+          )}
         </ScrollView>
       </View>
 
@@ -146,35 +199,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#000',
     marginBottom: 2,
-  },
-
-  shareContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderRadius: 20,
-    width: 130,
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  textShare: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: "#707070",
-  },
-  iconShare: {
-    backgroundColor: "#1D4592",
-    borderRadius: 20,
-    paddingHorizontal: 2,
   },
 
   input: {

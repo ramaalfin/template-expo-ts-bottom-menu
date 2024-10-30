@@ -13,6 +13,17 @@ interface DataSpecialRateProps {
   id_sts_rekening: number;
 }
 
+export const fetchSpecialRate = async ({ token }: { token: string }) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate`,
+    { headers }
+  );
+};
+
 export const createSpecialRate = async ({
   token,
   data,

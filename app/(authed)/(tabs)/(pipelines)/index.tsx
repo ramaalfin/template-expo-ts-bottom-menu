@@ -48,10 +48,14 @@ export default function PipelineScreen() {
         try {
           const response = await fetchFundingByIdUser(user.id_user, accessToken.token,);
 
-          setPipelines(response.data.data);
-          setFilteredPipelines(response.data.data);
+          if (response.data.code === 200) {
+            setPipelines(response.data.data);
+            setFilteredPipelines(response.data.data);
+          } else {
+            console.log("Gagal mengambil data");
+          }
         } catch (error) {
-          console.log(error);
+          console.log("Gagal mengambil data");
         }
       };
 
@@ -131,7 +135,13 @@ export default function PipelineScreen() {
               </View>
             </View>
           ))) : (
-            <Text style={{ textAlign: "center", marginTop: 20 }}>Data tidak ditemukan</Text>
+            <Text style={{
+              textAlign: "center",
+              marginTop: 20,
+              fontFamily: "Inter_400Regular",
+            }}>
+              Data tidak ditemukan
+            </Text>
           )}
         </ScrollView>
       </View>

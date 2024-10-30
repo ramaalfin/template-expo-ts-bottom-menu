@@ -46,10 +46,10 @@ export default function TabLayout() {
               <PipelineIconInactive width={35} height={27} />
             ),
           tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -30
+            marginLeft: user.id_jabatan === 8 ? -25 : -30
           },
           tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -30
+            marginLeft: user.id_jabatan === 8 ? -25 : -30
           },
           headerShown: false,
         }}
@@ -67,6 +67,7 @@ export default function TabLayout() {
           headerShown: false,
           tabBarStyle: {
             display: user.id_jabatan === 8 ? "flex" : "none",
+            marginLeft: user.id_jabatan === 8 ? -10 : 0,
           },
         }}
       />
@@ -81,10 +82,12 @@ export default function TabLayout() {
               <AktivitasIconInactive width={35} height={28} />
             ),
           tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -45
+            marginRight: user.id_jabatan === 8 ? -10 : 0,
+            marginLeft: user.id_jabatan !== 8 ? -45 : 0
           },
           tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -45
+            marginRight: user.id_jabatan === 8 ? -10 : 0,
+            marginLeft: user.id_jabatan !== 8 ? -45 : 0
           },
           headerShown: false,
         }}
