@@ -13,13 +13,57 @@ interface DataSpecialRateProps {
   id_sts_rekening: number;
 }
 
-export const fetchSpecialRate = async ({ token }: { token: string }) => {
+interface SpecialRateApprovalProps {
+  approve_ket: string;
+}
+
+export const fetchSpecialRateByIdUser = async ({
+  idUser,
+  token,
+}: {
+  idUser: number;
+  token: string;
+}) => {
   const headers = {
     Authorization: `Bearer ${token}`,
   };
 
   return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate`,
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/user/${idUser}`,
+    { headers }
+  );
+};
+
+export const fetchSpecialRateByIdUserPemutus = async ({
+  idUser,
+  token,
+}: {
+  idUser: number;
+  token: string;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/pemutus/${idUser}`,
+    { headers }
+  );
+};
+
+export const fetchSpecialRateById = async ({
+  id,
+  token,
+}: {
+  id: number;
+  token: string;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/${id}`,
     { headers }
   );
 };
@@ -37,6 +81,46 @@ export const createSpecialRate = async ({
 
   return await axios.post(
     `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate`,
+    data,
+    { headers }
+  );
+};
+
+export const specialRateApprove = async ({
+  token,
+  id,
+  data,
+}: {
+  token: string;
+  id: number;
+  data: SpecialRateApprovalProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/approve/${id}`,
+    data,
+    { headers }
+  );
+};
+
+export const specialRateReject = async ({
+  token,
+  id,
+  data,
+}: {
+  token: string;
+  id: number;
+  data: SpecialRateApprovalProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/reject/${id}`,
     data,
     { headers }
   );

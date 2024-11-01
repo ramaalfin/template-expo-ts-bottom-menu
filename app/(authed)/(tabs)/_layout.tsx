@@ -1,5 +1,7 @@
 import { Tabs } from "expo-router";
 
+import { useAuth } from "~/context/AuthContext";
+
 // components
 import TabBar from "~/components/TabBar";
 
@@ -14,7 +16,8 @@ import { PipelineIconActive } from "~/assets/menu/PipelineIconActive";
 import { PipelineIconInactive } from "~/assets/menu/PipelineIconInactive";
 import { SpecialRateIconActive } from "~/assets/menu/SpecialRateIconActive";
 import { SpecialRateIconInactive } from "~/assets/menu/SpecialRateIconInactive";
-import { useAuth } from "~/context/AuthContext";
+import { ApprovalIconActive } from "~/assets/menu/ApprovalIconActive";
+import { ApprovalIconInactive } from "~/assets/menu/ApprovalIconInactive";
 
 export default function TabLayout() {
   const { user } = useAuth();
@@ -98,9 +101,9 @@ export default function TabLayout() {
           title: "Approval",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <SpecialRateIconActive width={35} height={27} />
+              <ApprovalIconActive width={32} height={32} />
             ) : (
-              <SpecialRateIconInactive width={35} height={27} />
+              <ApprovalIconInactive width={28} height={28} />
             ),
           headerShown: false,
           tabBarStyle: {

@@ -187,7 +187,7 @@ export default function HomeScreen() {
                     color: "#707070",
                   }}
                 >
-                  {data?.pctClosing ? data?.pctClosing.toFixed(1).replace('.', ',') : '-'}%
+                  {data?.pctClosing ? data?.pctClosing.toFixed(1).replace('.', ',') : 0}%
                 </Text>
               </View>
             </View>
@@ -260,7 +260,7 @@ export default function HomeScreen() {
                     color: "#707070",
                   }}
                 >
-                  {data?.pctPending ? data?.pctPending.toFixed(1).replace('.', ',') : '-'}%
+                  {data?.pctPending ? data?.pctPending.toFixed(1).replace('.', ',') : 0}%
                 </Text>
               </View>
             </View>
@@ -293,16 +293,9 @@ export default function HomeScreen() {
       <View style={styles.meetContainer}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          style={{ height: hp("33%") }}
         >
           {activityToday.length > 0 ? (activityToday.map((item: any, index: number) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.menu}
-              onPress={() => navigation.push(
-                `/update/${item.id_activity}` as Href<"update/[id]">,
-              )}
-            >
+            <View key={index} style={styles.menu}>
               <Image
                 source={require("~/assets/icon/ic_notif_kuning.png")}
                 style={{ width: 30, height: 30 }}
@@ -312,21 +305,24 @@ export default function HomeScreen() {
                   {item.mst_funding.nama} - {item.deskripsi}
                 </Text>
 
-                <View
+                <TouchableOpacity
                   style={{
                     backgroundColor: "#1D4592",
                     borderRadius: 20,
                     padding: 2,
                   }}
+                  onPress={() => navigation.push(
+                    `/update/${item.id_activity}` as Href<"update/[id]">,
+                  )}
                 >
                   <MaterialIcons
                     name="keyboard-arrow-right"
                     size={16}
                     color="#FFFFFF"
                   />
-                </View>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
+            </View>
           ))) : (
             <Text
               style={{
@@ -433,6 +429,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   meetContainer: {
+    height: hp("37%"),
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 10,

@@ -37,6 +37,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { formatDate } from "~/utils/formatDate";
 import { Input } from "~/components/ui/input";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { fetchKegiatan } from "~/services/mst/kegiatan";
 
 interface ActivityProps {
     id_activity: number;
@@ -107,6 +108,7 @@ export default function UpdateActivity() {
     const [tindakanHasil, setTindakanHasil] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
+    const [kegiatan, setKegiatan] = useState<any[]>([]);
 
     const [isActivityDatePickerVisible, setActivityDatePickerVisibility] = useState(false);
     const [isJamMulaiNextAppointmentPickerVisible, setJamMulaiNextAppointmentPickerVisibility] = useState(false);
@@ -189,6 +191,21 @@ export default function UpdateActivity() {
         }
     };
 
+    // req: kegiatan
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchKegiatan(accessToken.token);
+
+            if (response.data.code === 200) {
+                setKegiatan(response.data.data.data);
+            } else {
+                console.log("Gagal mengambil data kegiatan");
+            }
+        }
+
+        fetchData();
+    }, []);
+
     const dataStatusHasil = statusHasil?.map((item) => ({
         label: item.hasil,
         value: item.id_hasil,
@@ -202,14 +219,7 @@ export default function UpdateActivity() {
 
     const dataJenisProduk = applications.map((item) => ({ label: item.application, value: item.id_application }));
     const dataNamaProduk = products.map((item) => ({ label: item.product, value: item.id_product }));
-
-    const dataKegiatan = [
-        { label: "Visit", value: 1 },
-        { label: "Telepon", value: 2 },
-        { label: "Chat/SMS", value: 3 },
-        { label: "Email", value: 4 },
-        { label: "Monitoring Evaluasi", value: 5 },
-    ];
+    const dataKegiatan = kegiatan.map((item) => ({ label: item.kegiatan, value: item.id_kegiatan }));
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [isClose, setIsClose] = useState(false);
@@ -274,7 +284,7 @@ export default function UpdateActivity() {
             id_product: Number(data.id_product),
             realisasi: Number(data.realisasi.replace(/\D/g, "")),
             keterangan_hasil: !isClose ? data.keterangan_hasil : "",
-            no_rekening: isClose ? data.no_rekening : null,
+            no_rekening: isClose ? data.no_rekening : "",
         }
 
         const nextAppointment = {
@@ -299,7 +309,7 @@ export default function UpdateActivity() {
                 data: nextAppointment,
             });
 
-            if (response.data.code) {
+            if (response.data.code === 200) {
                 setModalMessage("Update Data Berhasil");
                 setModalVisible(true);
                 setIsSuccess(true);

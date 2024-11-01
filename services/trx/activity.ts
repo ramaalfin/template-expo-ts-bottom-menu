@@ -21,6 +21,10 @@ interface ActivityResultProps {
   no_rekening: string | null;
 }
 
+interface ActivityApprovalProps {
+  keterangan_approval: string;
+}
+
 export const createActivity = async ({
   token,
   data,
@@ -107,7 +111,7 @@ export const dashboardByIdUser = async ({
   );
 };
 
-export const fetchPemutusByIdUser = async ({
+export const fetchPemutusByIdUserPemutus = async ({
   token,
   idUser,
 }: {
@@ -159,6 +163,46 @@ export const updateResultActivityNextAppointmentById = async ({
 
   return await axios.put(
     `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/update-hasil-next-appointment/${id}`,
+    data,
+    { headers }
+  );
+};
+
+export const activityApprove = async ({
+  token,
+  id,
+  data,
+}: {
+  token: string;
+  id: number;
+  data: ActivityApprovalProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/approve/${id}`,
+    data,
+    { headers }
+  );
+};
+
+export const activityReject = async ({
+  token,
+  id,
+  data,
+}: {
+  token: string;
+  id: number;
+  data: ActivityApprovalProps;
+}) => {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  return await axios.put(
+    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/reject/${id}`,
     data,
     { headers }
   );

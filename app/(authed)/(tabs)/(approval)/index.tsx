@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Href, useRouter } from "expo-router";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Href, useFocusEffect, useRouter } from "expo-router";
+import { ScrollView, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
@@ -9,46 +9,66 @@ import {
   widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 
+// context
 import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchPemutusByIdUserPemutus } from "~/services/trx/activity";
 
 // icons
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { fetchPemutusByIdUser } from "~/services/trx/activity";
 
-// components
+interface ApprovalProps {
+  id_activity: number;
+  mst_funding: {
+    id_funding: number;
+    nama: string;
+  };
+  mst_kegiatan: {
+    id_kegiatan: number;
+    kegiatan: string;
+  };
+  deskripsi: string;
+}
 
 export default function ApprovalScreen() {
   const { accessToken, user } = useAuth();
   const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
-  const [approval, setApproval] = useState([]);
+  const [approval, setApproval] = useState<ApprovalProps[]>([]);
   const navigation = useRouter();
 
   useEffect(() => {
-    user?.photo ? setPhoto({ uri: user.photo }) : setPhoto(require("~/assets/images/nophoto.jpg"));
+    user?.photo ? setPhoto({ uri: user.photo }) : setPhoto(photo);
   })
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetchPemutusByIdUser({
-        token: accessToken.token,
-        idUser: user.id_user
-      });
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await fetchPemutusByIdUserPemutus({
+            token: accessToken.token,
+            idUser: user.id_user
+          });
 
-      if (response.status === 200) {
-        setApproval(response.data.data.data);
-      } else {
-        console.log("Gagal mengambil data");
-      }
-    }
+          if (response.data.code === 200) {
+            setApproval(response.data.data);
+          } else {
+            console.log("Gagal mengambil data");
+          }
+        } catch (error) {
+          console.log("Gagal mengambil data");
+        }
+      };
 
-    fetchData();
-  }, []);
+      fetchData();
+    }, [accessToken, user])
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
       <View style={styles.topBar}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between" }}>
           <View style={{ width: wp("50%") }}>
             <Text style={styles.topBarPrimaryText}>
               {user.nama}
@@ -68,70 +88,52 @@ export default function ApprovalScreen() {
             />
           </View>
         </View>
+      </View>
 
-        <Text style={styles.topBarSecondaryText}>Your progress</Text>
-
+      <View style={{ marginTop: hp("-12%"), marginHorizontal: 20 }}>
+        <Text style={styles.topBarSecondaryText}>Daftar Persetujuan</Text>
         <View style={styles.approvalContainer}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            style={{ height: hp("65%") }}
+            style={{ marginBottom: 10 }}
           >
-            {approval?.length > 0 ? (approval?.map((item: any, index: number) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.menu}
-              // onPress={() => navigation.push(
-              //   `/update/${item.id_activity}` as Href<"update/[id]">,
-              // )}
-              >
+            {approval.length > 0 ? approval.map((item, index) => (
+              <View key={index} style={styles.menu}>
                 <Image
                   source={require("~/assets/icon/ic_notif_kuning.png")}
-                  style={{ width: 30, height: 30 }}
+                  style={{ width: 20, height: 20 }}
                 />
                 <View style={styles.menuItem}>
-                  <Text style={styles.menuText}>
-                    {item.mst_funding.nama} - {item.deskripsi} - {item.mst_kegiatan.kegiatan}
-                  </Text>
-
-                  <View
-                    style={{
-                      backgroundColor: "#1D4592",
-                      borderRadius: 20,
-                      padding: 2,
-                    }}
-                  >
-                    <MaterialIcons
-                      name="keyboard-arrow-right"
-                      size={16}
-                      color="#FFFFFF"
-                    />
+                  <View>
+                    <Text style={styles.menuText}>{item?.mst_funding?.nama} - {item?.mst_kegiatan?.kegiatan} - {item?.deskripsi}</Text>
                   </View>
+                  <TouchableOpacity
+                    style={{ backgroundColor: "#1D4592", borderRadius: 20, padding: 2 }}
+                    onPress={() => navigation.push(
+                      `/(approval)/detail/${item.id_activity}` as Href<"(approval)/detail/[id]">,
+                    )}
+                  >
+                    <MaterialIcons name="keyboard-arrow-right" size={16} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            ))) : (
-              <View style={{
-                // place content in the center
-                height: hp("65%"),
-                justifyContent: "center",
-                alignItems: "center",
-
-              }}>
-                <Text
-                  style={{
-                    fontFamily: "Inter_400Regular",
-                    fontSize: 14,
-                    color: "#707070",
-                    textAlign: "center",
-                  }}
-                >
-                  Tidak ada approval
-                </Text>
               </View>
-            )}
+            )) :
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: "#707070",
+                  textAlign: "center",
+                  marginTop: 10,
+                }}
+              >
+                Tidak ada data persetujuan
+              </Text>
+            }
           </ScrollView>
         </View>
       </View>
-    </View >
+    </View>
   );
 }
 
@@ -164,10 +166,11 @@ const styles = StyleSheet.create({
   },
 
   approvalContainer: {
+    height: hp("67%"),
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginTop: 20,
+    paddingVertical: 5,
+    marginTop: 15,
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: {
@@ -183,17 +186,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     paddingVertical: 5,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#707070",
   },
   menuItem: {
     flexDirection: "row",
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#707070",
     alignItems: "center",
     justifyContent: "space-between",
-    width: wp("60%"),
+    width: wp("68%"),
   },
   menuText: {
-    color: "#707070",
+    color: "#000",
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     marginVertical: 10,

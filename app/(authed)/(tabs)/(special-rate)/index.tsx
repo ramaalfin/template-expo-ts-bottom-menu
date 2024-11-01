@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Href, useFocusEffect, useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -9,14 +9,13 @@ import {
 import { useAuth } from "~/context/AuthContext";
 
 // services
-import { fetchSpecialRate } from "~/services/trx/special-rate";
+import { fetchSpecialRateByIdUser } from "~/services/trx/special-rate";
 
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // components
 import Topbar from "~/components/TopBar";
-import { Input } from "~/components/ui/input";
 import SearchBar from "~/components/SearchBar";
 
 interface SpecialRateProps {
@@ -32,7 +31,7 @@ interface SpecialRateProps {
 }
 
 export default function SpesialRateScreen() {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const navigation = useRouter();
 
   const [specialRate, setSpecialRate] = useState<SpecialRateProps[]>([]);
@@ -44,11 +43,14 @@ export default function SpesialRateScreen() {
     useCallback(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchSpecialRate({ token: accessToken.token });
+          const response = await fetchSpecialRateByIdUser({
+            idUser: user.id_user,
+            token: accessToken.token
+          });
 
           if (response.data.code === 200) {
-            setSpecialRate(response.data.data.data);
-            setFilteredSpecialRate(response.data.data.data);
+            setSpecialRate(response.data.data);
+            setFilteredSpecialRate(response.data.data);
           } else {
             console.log("Gagal mengambil data");
           }
@@ -58,7 +60,7 @@ export default function SpesialRateScreen() {
       };
 
       fetchData();
-    }, [accessToken])
+    }, [accessToken, user])
   );
 
   const handleSearch = (keyword: string) => {
@@ -114,6 +116,25 @@ export default function SpesialRateScreen() {
                   <Text style={styles.nominal}>Rp. {item?.nominal.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Text>
                   <Text style={styles.statusHasil}>{item?.mst_sts_special_rate?.sts_special_rate || "-"}</Text>
                 </View>
+              </View>
+
+              <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+                <TouchableOpacity
+                  style={styles.shareContainer}
+                  onPress={
+                    () => navigation.push(`/(special-rate)/detail/${item.id_special_rate}` as Href<"/(special-rate)/detail/[id]">)
+                  }
+                >
+                  <Text style={styles.textShare}>
+                    Lihat Detail
+                  </Text>
+                  <MaterialIcons
+                    name="keyboard-arrow-right"
+                    size={18}
+                    color="#FFFFFF"
+                    style={styles.iconShare}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           ))) : (
@@ -199,6 +220,35 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#000',
     marginBottom: 2,
+  },
+
+  shareContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    backgroundColor: "#FFFFFF",
+    padding: 10,
+    borderRadius: 20,
+    width: 130,
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  textShare: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: "#707070",
+  },
+  iconShare: {
+    backgroundColor: "#1D4592",
+    borderRadius: 20,
+    paddingHorizontal: 2,
   },
 
   input: {

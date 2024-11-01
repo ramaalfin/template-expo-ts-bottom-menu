@@ -9,13 +9,11 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import moment from "moment";
-
 // context
 import { useAuth } from "~/context/AuthContext";
 
 // services
-import { fetchSpecialRateById } from "~/services/trx/special-rate";
+import { fetchSpecialRateById, specialRateApprove, specialRateReject } from "~/services/trx/special-rate";
 
 // // icons
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -28,7 +26,7 @@ import Topbar from "~/components/TopBar";
 import { formatDate } from "~/utils/formatDate";
 import { Input } from "~/components/ui/input";
 
-interface DetailSpecialRateProps {
+interface DetailSpecialRatePemutusProps {
     no_rekening: string;
     nama: string;
     tgl_buka: string;
@@ -45,11 +43,21 @@ interface DetailSpecialRateProps {
     }
 }
 
-export default function DetailSpecialRate() {
+interface UpdateSpecialRateProps {
+    approve_ket: string;
+}
+
+export default function DetailSpecialRatePemutus() {
+    const { control, handleSubmit, formState: { errors } } = useForm<UpdateSpecialRateProps>();
     const { id } = useLocalSearchParams();
     const { accessToken } = useAuth();
 
-    const [specialRate, setSpecialRate] = useState<DetailSpecialRateProps | null>(null);
+    const navigation = useRouter();
+    const [specialRate, setSpecialRate] = useState<DetailSpecialRatePemutusProps | null>(null);
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,6 +75,54 @@ export default function DetailSpecialRate() {
 
         fetchData();
     }, []);
+
+    const submitReject = async (data: UpdateSpecialRateProps) => {
+        try {
+            const response = await specialRateReject({
+                token: accessToken.token,
+                id: Number(id),
+                data: data,
+            });
+
+            if (response.data.code) {
+                setModalMessage("Reject Special Rate Berhasil");
+                setModalVisible(true);
+                setIsSuccess(true);
+            } else {
+                setModalMessage("Reject Special Rate Gagal");
+                setModalVisible(true);
+                setIsSuccess(false);
+            }
+        } catch (error) {
+            setModalMessage("Reject Special Rate Gagal");
+            setModalVisible(true);
+            setIsSuccess(false);
+        }
+    }
+
+    const submitApprove = async (data: UpdateSpecialRateProps) => {
+        try {
+            const response = await specialRateApprove({
+                token: accessToken.token,
+                id: Number(id),
+                data: data,
+            });
+
+            if (response.data.code) {
+                setModalMessage("Approve Special Rate Berhasil");
+                setModalVisible(true);
+                setIsSuccess(true);
+            } else {
+                setModalMessage("Approve Special Rate Gagal");
+                setModalVisible(true);
+                setIsSuccess(false);
+            }
+        } catch (error) {
+            setModalMessage("Approve Special Rate Gagal");
+            setModalVisible(true);
+            setIsSuccess(false);
+        }
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: "#F48120" }}>
@@ -228,10 +284,95 @@ export default function DetailSpecialRate() {
                             </View>
                         </View>
 
+                        <Text style={styles.separatorText}>Hasil Verifikasi</Text>
+
+                        <View style={styles.formItem}>
+                            <Text style={styles.formLabel}>Catatan Verifikasi</Text>
+                            <Controller
+                                control={control}
+                                name="approve_ket"
+                                rules={{ required: "Catatan Approval wajib diisi" }}
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <View style={{ position: "relative" }}>
+                                        <MaterialIcons name="menu" size={20} color="#F48120" style={styles.iconInput} />
+                                        <Input
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            style={styles.textArea}
+                                            multiline={true}
+                                            numberOfLines={10}
+                                        />
+                                    </View>
+                                )}
+                            />
+                            {errors.approve_ket && <Text style={styles.errorField}>{errors.approve_ket.message}</Text>}
+                        </View>
+
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 20, marginBottom: 5 }}>
+                            <TouchableOpacity
+                                style={[styles.btnItem, { borderColor: "#FFF" }]}
+                                onPress={handleSubmit(submitReject)}
+                            >
+                                <Text style={[styles.btnText, { color: "#F48120" }]}>Reject</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.btnItem, { backgroundColor: "#F48120", borderColor: "#F48120" }]}
+                                onPress={handleSubmit(submitApprove)}
+                            >
+                                <Text style={[styles.btnText, { color: "#FFF" }]}>Approve</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </ScrollView>
             </View>
-        </View >
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Image
+                            source={isSuccess ? require("~/assets/icon/ic_success.png") : require("~/assets/icon/ic_failed.png")}
+                            style={{ width: 90, height: 90, marginBottom: 20 }}
+                        />
+                        <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>
+                            {modalMessage}
+                        </Text>
+                        <View style={{ marginVertical: 15, borderWidth: .5, borderColor: "#F48120", width: "100%" }}></View>
+                        <Pressable
+                            style={{
+                                paddingHorizontal: 10,
+                                borderRadius: 5,
+                            }}
+                            onPress={() => {
+                                setModalVisible(!modalVisible);
+                                navigation.back()
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: "Inter_600SemiBold",
+                                    fontSize: 14,
+                                    textAlign: "center",
+                                    color: "#F48120",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                Tutup
+                            </Text>
+
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
+        </View>
     )
 }
 
