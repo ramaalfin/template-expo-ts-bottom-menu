@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "fast",
+    "name": "FAST - Funding App of Super Team",
     "slug": "fast",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,7 +20,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.mahardika.fast"
+      "package": "com.mahardika.fast",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -33,13 +37,19 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Izin lokasi diperlukan untuk menggunakan lokasi Anda",
+          "locationAlwaysAndWhenInUsePermission": "Izinkan lokasi untuk mengakses lokasi Anda",
           "isBackgroundLocationEnabled": true
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "owner": "mahardika",
+    "extra": {
+      "eas": {
+        "projectId": "1ae75b2c-20fa-47bf-8eed-a6c17960c16d"
+      }
     }
   }
 }

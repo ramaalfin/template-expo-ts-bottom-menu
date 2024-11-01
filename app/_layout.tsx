@@ -1,9 +1,12 @@
-import "../global.css"
+import "../global.css";
 
 import { Slot } from "expo-router";
 import * as React from 'react';
 import { StatusBar } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// context
+import { AuthProvider } from "~/context/AuthContext";
 
 // fonts
 import {
@@ -14,7 +17,6 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
-import { AuthProvider } from "~/context/AuthContext";
 
 export default function Root() {
   let [fontsLoaded] = useFonts({
