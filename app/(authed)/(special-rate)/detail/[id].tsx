@@ -45,7 +45,7 @@ interface DetailSpecialRateProps {
     }
 }
 
-export default function UpdateApproval() {
+export default function DetailSpecialRate() {
     const { id } = useLocalSearchParams();
     const { accessToken } = useAuth();
 
