@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import {
@@ -6,16 +6,53 @@ import {
     heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-// icons
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Ionicons from '@expo/vector-icons/Ionicons';
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { nofitication } from "~/services/trx/activity";
 
 // components
 import Topbar from "~/components/TopBar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import NotifApprove from "~/components/NotifApprove";
+import NotifReject from "~/components/NotifReject";
+import NotifWaiting from "~/components/NotifWaiting";
+
+interface NotificationProps {
+    id_activity: number,
+    id_sts_approval: number,
+    tanggal: string,
+    mst_funding: {
+        alamat: string,
+        nama: string,
+    },
+    mst_sts_approval: {
+        sts_approval: string,
+    }
+}
 
 export default function NotificationScreen() {
+    const { user, accessToken } = useAuth();
+    const [notifications, setNotifications] = useState<NotificationProps[]>([]);
     const [value, setValue] = useState('semua');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await nofitication({ token: accessToken.token, idUser: user.id_user });
+
+            if (response.data.code === 200) {
+                // sort by date
+                setNotifications(response.data.data.sort((a: NotificationProps, b: NotificationProps) => {
+                    return new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime();
+                }));
+            } else {
+                setNotifications([]);
+            }
+        }
+
+        fetchData();
+    }, []);
 
     return (
         <View style={{ flex: 1, backgroundColor: "#F48120" }}>
@@ -55,6 +92,17 @@ export default function NotificationScreen() {
                             <Text style={styles.tabHeaderText}>Approve</Text>
                         </TabsTrigger>
                         <TabsTrigger
+                            value='waiting'
+                            style={{
+                                flex: 1,
+                                shadowColor: "transparent",
+                                borderBottomWidth: value === 'waiting' ? 3 : 0,
+                                borderBottomColor: value === 'waiting' ? "orange" : "transparent",
+                            }}
+                        >
+                            <Text style={styles.tabHeaderText}>Waiting</Text>
+                        </TabsTrigger>
+                        <TabsTrigger
                             value='reject'
                             style={{
                                 flex: 1,
@@ -69,210 +117,42 @@ export default function NotificationScreen() {
                     <TabsContent value='semua' style={styles.tabContent}>
                         <View style={styles.contentContainer}>
                             <ScrollView showsVerticalScrollIndicator={false}>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#316A8F",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="checkcircle" size={28} color="#316A8F" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
+                                {notifications.length > 0 ? notifications.map((item: NotificationProps) => (
+                                    item.mst_sts_approval.sts_approval === 'Approved' ? (
+                                        <NotifApprove key={`approve-${item.id_activity}`} data={item} />
+                                    ) : item.mst_sts_approval.sts_approval === 'Reject' ? (
+                                        <NotifReject key={`reject-${item.id_activity}`} data={item} />
+                                    ) : (
+                                        <NotifWaiting key={`waiting-${item.id_activity}`} data={item} />
+                                    )
+                                )) : <Text style={{ textAlign: "center", marginTop: 20 }}>Tidak ada notifikasi</Text>}
                             </ScrollView>
                         </View>
                     </TabsContent>
                     <TabsContent value='approve' style={styles.tabContent}>
                         <View style={styles.contentContainer}>
                             <ScrollView showsVerticalScrollIndicator={false}>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#316A8F",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="checkcircle" size={28} color="#316A8F" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
+                                {notifications.length > 0 ? notifications.map((item) => (
+                                    <NotifApprove key={item.id_activity} data={item} />
+                                )) : <Text style={{ textAlign: "center", marginTop: 20 }}>Tidak ada notifikasi</Text>}
                             </ScrollView>
                         </View>
                     </TabsContent>
                     <TabsContent value='reject' style={styles.tabContent}>
                         <View style={styles.contentContainer}>
                             <ScrollView showsVerticalScrollIndicator={false}>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
-                                <View style={styles.contentItem}>
-                                    <View style={{
-                                        backgroundColor: "#D02827",
-                                        width: '3%',
-                                        borderTopLeftRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                    ></View>
-                                    <AntDesign name="exclamationcircle" size={28} color="#D02827" style={{ alignSelf: "center", paddingHorizontal: 10 }} />
-                                    <View style={{ width: "90%", paddingVertical: 10 }}>
-                                        <Text style={styles.date}>31 Januari 2024 WIB</Text>
-                                        <Text style={styles.titleText}>Pengajuan Pembiayaan</Text>
-                                        <Text style={styles.textDesc}>Alamat: Bogor</Text>
-                                        <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-                                    </View>
-                                </View>
+                                {notifications.length > 0 ? notifications.map((item) => (
+                                    <NotifReject key={item.id_activity} data={item} />
+                                )) : <Text style={{ textAlign: "center", marginTop: 20 }}>Tidak ada notifikasi</Text>}
+                            </ScrollView>
+                        </View>
+                    </TabsContent>
+                    <TabsContent value='waiting' style={styles.tabContent}>
+                        <View style={styles.contentContainer}>
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                {notifications.length > 0 ? notifications.map((item) => (
+                                    <NotifWaiting key={item.id_activity} data={item} />
+                                )) : <Text style={{ textAlign: "center", marginTop: 20 }}>Tidak ada notifikasi</Text>}
                             </ScrollView>
                         </View>
                     </TabsContent>
