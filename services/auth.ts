@@ -5,13 +5,14 @@ interface LoginProps {
   password: string;
 }
 
-interface LogoutProps {
-  accessToken: string;
+interface RefreshTokenProps {
+  refreshToken: string;
 }
 
 interface ChangePasswordProps {
   password: string;
   newPassword: string;
+  token: string;
 }
 
 export const loginUser = async ({ email, password }: LoginProps) => {
@@ -35,14 +36,40 @@ export const loginUser = async ({ email, password }: LoginProps) => {
   }
 };
 
-export const logoutUser = async ({ accessToken }: LogoutProps) => {
+export const refreshTokenUser = async ({ refreshToken }: RefreshTokenProps) => {
   try {
     const response = await axios.post(
-      ` ${process.env.EXPO_PUBLIC_API_URL}/v1/auth/logout`,
-      { accessToken },
+      ` ${process.env.EXPO_PUBLIC_API_URL}/v1/auth/refresh-tokens`,
+      { refreshToken },
       {
         headers: {
           "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error: any) {
+    return error.response.data;
+  }
+};
+
+export const changePassword = async ({
+  token,
+  password,
+  newPassword,
+}: ChangePasswordProps) => {
+  try {
+    const response = await axios.post(
+      `${process.env.EXPO_PUBLIC_API_URL}/v1/auth/change-password`,
+      {
+        password,
+        newPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       }
     );

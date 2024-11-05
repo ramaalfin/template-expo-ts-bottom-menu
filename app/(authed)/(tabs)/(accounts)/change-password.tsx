@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -7,9 +7,14 @@ import {
 
 import { useForm, Controller } from 'react-hook-form';
 
+// icons
+import { Feather } from "@expo/vector-icons";
+
 // components
 import Topbar from "~/components/TopBar";
 import { Input } from "~/components/ui/input";
+import { changePassword } from "~/services/auth";
+import { useAuth } from "~/context/AuthContext";
 
 type ChangePasswordProps = {
     email: string;
@@ -19,11 +24,47 @@ type ChangePasswordProps = {
 };
 
 export default function ChangePasswordScreen() {
-    const { control, handleSubmit, watch, formState: { errors } } = useForm<ChangePasswordProps>();
-    const newPassword = watch('newPassword');
+    const { isLoading, tokens } = useAuth();
+    const { control, handleSubmit, formState: { errors }, getValues } = useForm<ChangePasswordProps>();
 
-    const submit = (data: ChangePasswordProps) => {
-        console.log(data);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    const submit = async (data: ChangePasswordProps) => {
+        try {
+            const response = await changePassword({
+                token: tokens.access.token,
+                password: data.currentPassword,
+                newPassword: data.newPassword,
+            });
+
+            console.log(response);
+
+
+            if (response.code === 200) {
+                setModalMessage("Ubah Password Berhasil");
+                setModalVisible(true);
+                setIsSuccess(true);
+
+                control._reset();
+                setShowPassword(false);
+                setShowNewPassword(false);
+                setShowConfirmPassword(false);
+            } else {
+                setModalMessage(response.message);
+                setModalVisible(true);
+                setIsSuccess(false);
+            }
+        } catch (error) {
+            setModalMessage("Ubah Password Gagal");
+            setModalVisible(true);
+            setIsSuccess(false);
+        }
     };
 
     return (
@@ -38,7 +79,10 @@ export default function ChangePasswordScreen() {
                     <Controller
                         control={control}
                         name="email"
-                        rules={{ required: 'Email wajib diisi' }}
+                        rules={{
+                            required: "Email wajib diisi",
+                            validate: (value) => value.includes("@") || "Email tidak valid"
+                        }}
                         render={({ field: { onChange, onBlur, value } }) => (
                             <Input
                                 onBlur={onBlur}
@@ -59,13 +103,35 @@ export default function ChangePasswordScreen() {
                         name="currentPassword"
                         rules={{ required: "Password Saat Ini wajib diisi" }}
                         render={({ field: { onChange, onBlur, value } }) => (
-                            <Input
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                style={styles.input}
-                                secureTextEntry={true}
-                            />
+                            <View style={{ position: "relative" }}>
+                                <View style={styles.password}>
+                                    <Input
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        style={styles.input}
+                                        secureTextEntry={!showPassword}
+                                    />
+
+                                    <View style={{ position: "absolute", right: 10, top: 15 }}>
+                                        {showPassword ? (
+                                            <Feather
+                                                name="eye"
+                                                size={20}
+                                                color="#707070"
+                                                onPress={() => setShowPassword(!showPassword)}
+                                            />
+                                        ) : (
+                                            <Feather
+                                                name="eye-off"
+                                                size={20}
+                                                color="#707070"
+                                                onPress={() => setShowPassword(!showPassword)}
+                                            />
+                                        )}
+                                    </View>
+                                </View>
+                            </View>
                         )}
                     />
                     {errors.currentPassword && <Text style={styles.errorField}>{errors.currentPassword.message}</Text>}
@@ -78,13 +144,35 @@ export default function ChangePasswordScreen() {
                         name="newPassword"
                         rules={{ required: "Password Baru wajib diisi" }}
                         render={({ field: { onChange, onBlur, value } }) => (
-                            <Input
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                style={styles.input}
-                                secureTextEntry={true}
-                            />
+                            <View style={{ position: "relative" }}>
+                                <View style={styles.password}>
+                                    <Input
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        style={styles.input}
+                                        secureTextEntry={!showNewPassword}
+                                    />
+
+                                    <View style={{ position: "absolute", right: 10, top: 15 }}>
+                                        {showNewPassword ? (
+                                            <Feather
+                                                name="eye"
+                                                size={20}
+                                                color="#707070"
+                                                onPress={() => setShowNewPassword(!showNewPassword)}
+                                            />
+                                        ) : (
+                                            <Feather
+                                                name="eye-off"
+                                                size={20}
+                                                color="#707070"
+                                                onPress={() => setShowNewPassword(!showNewPassword)}
+                                            />
+                                        )}
+                                    </View>
+                                </View>
+                            </View>
                         )}
                     />
                     {errors.newPassword && <Text style={styles.errorField}>{errors.newPassword.message}</Text>}
@@ -97,28 +185,99 @@ export default function ChangePasswordScreen() {
                         name="confirmPassword"
                         rules={{
                             required: "Konfirmasi Password Baru wajib diisi",
-                            validate: (value) => value === newPassword || "Konfirmasi Password tidak sama dengan Password Baru"
+                            validate: (value) => value === getValues("newPassword") || "Password tidak sama"
                         }}
                         render={({ field: { onChange, onBlur, value } }) => (
-                            <Input
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                style={styles.input}
-                                secureTextEntry={true}
-                            />
+                            <View style={{ position: "relative" }}>
+                                <View style={styles.password}>
+                                    <Input
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        style={styles.input}
+                                        secureTextEntry={!showConfirmPassword}
+                                    />
+
+                                    <View style={{ position: "absolute", right: 10, top: 15 }}>
+                                        {showConfirmPassword ? (
+                                            <Feather
+                                                name="eye"
+                                                size={20}
+                                                color="#707070"
+                                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            />
+                                        ) : (
+                                            <Feather
+                                                name="eye-off"
+                                                size={20}
+                                                color="#707070"
+                                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            />
+                                        )}
+                                    </View>
+                                </View>
+                            </View>
                         )}
                     />
                     {errors.confirmPassword && <Text style={styles.errorField}>{errors.confirmPassword.message}</Text>}
                 </View>
 
                 <TouchableOpacity
-                    style={styles.btnItem}
                     onPress={handleSubmit(submit)}
+                    style={styles.btnItem}
+                    disabled={isLoading}
                 >
-                    <Text style={styles.btnText}>Simpan</Text>
+                    {isLoading ? (
+                        <ActivityIndicator color="white" size={20} />
+                    ) : (
+                        <Text style={styles.btnText}>Simpan</Text>
+                    )}
                 </TouchableOpacity>
             </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Image
+                            source={isSuccess ? require("~/assets/icon/ic_success.png") : require("~/assets/icon/ic_failed.png")}
+                            style={{ width: 90, height: 90, marginBottom: 20 }}
+                        />
+                        <Text style={{ fontFamily: "Inter_500Medium", fontSize: 15, textAlign: "center" }}>
+                            {modalMessage}
+                        </Text>
+                        <View style={{ marginVertical: 15, borderWidth: .5, borderColor: "#F48120", width: "100%" }}></View>
+                        <Pressable
+                            style={{
+                                paddingHorizontal: 10,
+                                borderRadius: 5,
+                            }}
+                            onPress={() => {
+                                setModalVisible(!modalVisible);
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: "Inter_600SemiBold",
+                                    fontSize: 14,
+                                    textAlign: "center",
+                                    color: "#F48120",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                Tutup
+                            </Text>
+
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -142,6 +301,8 @@ const styles = StyleSheet.create({
     },
     input: {
         marginTop: 5,
+        height: 42,
+        width: "100%",
         borderColor: "#979797",
         fontSize: 13,
         fontFamily: "Inter_400Regular"
@@ -166,5 +327,35 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: "center",
         color: "#fff",
+    },
+    password: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+
+    modalView: {
+        width: '60%',
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
 });

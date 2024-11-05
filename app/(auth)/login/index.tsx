@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from 'react-hook-form';
 
 import {
@@ -24,6 +24,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
 } from "react-native";
+import { useRouter } from "expo-router";
 
 type LoginProps = {
     email: string;
@@ -34,6 +35,7 @@ export default function Login() {
     const { control, handleSubmit, formState: { errors } } = useForm<LoginProps>();
     const [showPassword, setShowPassword] = useState(false);
     const { errorMessage, login, isLoading } = useAuth();
+    const navigation = useRouter();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -180,24 +182,6 @@ export default function Login() {
                             <Text style={{ color: "white", fontFamily: "Inter_500Medium" }}>Masuk</Text>
                         )}
                     </TouchableOpacity>
-
-                    <Pressable
-                        // onPress={() => navigation.navigate("LupaPasswordScreen")}
-                        style={{
-                            flex: 1,
-                            alignItems: "center",
-                        }}
-                    >
-                        <Text
-                            style={{
-                                fontFamily: "Inter_400Regular",
-                                color: "#707070",
-                                fontSize: 13,
-                            }}
-                        >
-                            Lupa Password?
-                        </Text>
-                    </Pressable>
                 </View>
 
                 <Image
