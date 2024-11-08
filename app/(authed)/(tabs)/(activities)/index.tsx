@@ -47,7 +47,7 @@ interface ActivityProps {
 }
 
 export default function ActivityScreen() {
-  const { user, accessToken } = useAuth();
+  const { user, logout } = useAuth();
   const [activityDates, setActivityDates] = useState<ActivityProps[]>([]);
   const navigation = useRouter();
 
@@ -55,19 +55,16 @@ export default function ActivityScreen() {
     useCallback(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchActivitiesByIdUser({
-            token: accessToken.token,
-            idUser: user.id_user,
-          });
+          const response = await fetchActivitiesByIdUser(user.id_user);
 
           setActivityDates(response.data.data);
         } catch (error) {
-          console.log(error);
+          logout();
         }
       };
 
       fetchData();
-    }, [accessToken, user.id_user])
+    }, [user.id_user])
   );
 
   const activities = useMemo(() => {

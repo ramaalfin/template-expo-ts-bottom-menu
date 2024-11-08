@@ -31,7 +31,7 @@ interface SpecialRateProps {
 }
 
 export default function SpesialRateScreen() {
-  const { accessToken, user } = useAuth();
+  const { logout, user } = useAuth();
   const navigation = useRouter();
 
   const [specialRate, setSpecialRate] = useState<SpecialRateProps[]>([]);
@@ -43,24 +43,21 @@ export default function SpesialRateScreen() {
     useCallback(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchSpecialRateByIdUser({
-            idUser: user.id_user,
-            token: accessToken.token
-          });
+          const response = await fetchSpecialRateByIdUser(user.id_user);
 
           if (response.data.code === 200) {
             setSpecialRate(response.data.data);
             setFilteredSpecialRate(response.data.data);
           } else {
-            console.log("Gagal mengambil data");
+            logout();
           }
         } catch (error) {
-          console.log("Gagal mengambil data");
+          logout();
         }
       };
 
       fetchData();
-    }, [accessToken, user])
+    }, [user.id_user])
   );
 
   const handleSearch = (keyword: string) => {
@@ -93,11 +90,7 @@ export default function SpesialRateScreen() {
             name="search"
             size={24}
             color="#707070"
-            style={{
-              position: "absolute",
-              top: hp("2%"),
-              right: 25
-            }}
+            style={{ position: "absolute", top: hp("2%"), right: 25 }}
           />
         </View>
 
@@ -138,11 +131,7 @@ export default function SpesialRateScreen() {
               </View>
             </View>
           ))) : (
-            <Text style={{
-              textAlign: "center",
-              marginTop: 20,
-              fontFamily: "Inter_400Regular",
-            }}>
+            <Text style={{ textAlign: "center", marginTop: 20, fontFamily: "Inter_400Regular" }}>
               Data tidak ditemukan
             </Text>
           )}

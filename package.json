@@ -48,6 +48,8 @@
     "react-native-screens": "3.31.1",
     "react-native-step-indicator": "^1.0.3",
     "react-native-svg": "^15.2.0",
+    "react-native-user-inactivity": "^1.2.0",
+    "react-native-user-inactivity-check": "^1.0.1",
     "react-native-web": "~0.19.10",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"

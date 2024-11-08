@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../index";
 
 interface ActivityProps {
   id_funding: number;
@@ -22,205 +22,77 @@ interface ActivityResultProps {
 }
 
 interface ActivityApprovalProps {
+  id: number;
   keterangan_approval: string;
 }
 
-export const createActivity = async ({
-  token,
-  data,
-}: {
-  token: string;
-  data: ActivityProps;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.post(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity`,
-    data,
-    { headers }
-  );
+export const createActivity = async (data: ActivityProps) => {
+  return await axios.post(`/v1/trx/activity`, data);
 };
 
-export const fetchActivityById = async ({
-  token,
-  id,
-}: {
-  token: string;
-  id: number;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/${id}`,
-    { headers }
-  );
+export const fetchActivityById = async (id: number) => {
+  return await axios.get(`/v1/trx/activity/${id}`);
 };
 
-export const fetchActivitiesByIdUser = async ({
-  token,
-  idUser,
-}: {
-  token: string;
-  idUser: number;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/user/${idUser}`,
-    { headers }
-  );
+export const fetchActivitiesByIdUser = async (idUser: number) => {
+  return await axios.get(`/v1/trx/activity/user/${idUser}`);
 };
 
-export const fetchActivitiesByIdUserToday = async ({
-  token,
-  idUser,
-}: {
-  token: string;
-  idUser: number;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/user/${idUser}/today`,
-    { headers }
-  );
+export const fetchActivitiesByIdUserToday = async (idUser: number) => {
+  return await axios.get(`/v1/trx/activity/user/${idUser}/today`);
 };
 
-export const dashboardByIdUser = async ({
-  token,
-  idUser,
-}: {
-  token: string;
-  idUser: number;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/dashboard/${idUser}`,
-    { headers }
-  );
+export const dashboardByIdUser = async (idUser: number) => {
+  return await axios.get(`/v1/trx/activity/dashboard/${idUser}`);
 };
 
-export const fetchPemutusByIdUserPemutus = async ({
-  token,
-  idUser,
-}: {
-  token: string;
-  idUser: number;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/pemutus/${idUser}`,
-    { headers }
-  );
+export const fetchPemutusByIdUserPemutus = async (idUser: number) => {
+  return await axios.get(`/v1/trx/activity/pemutus/${idUser}`);
 };
 
 export const updateResultActivityById = async ({
-  token,
   id,
   data,
 }: {
-  token: string;
   id: number;
   data: ActivityResultProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/update-hasil/${id}`,
-    data,
-    { headers }
-  );
+  return await axios.put(`/v1/trx/activity/update-hasil/${id}`, data);
 };
 
 export const updateResultActivityNextAppointmentById = async ({
-  token,
   id,
   data,
 }: {
-  token: string;
   id: number;
   data: ActivityResultProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
   return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/update-hasil-next-appointment/${id}`,
-    data,
-    { headers }
+    `/v1/trx/activity/update-hasil-next-appointment/${id}`,
+    data
   );
 };
 
 export const activityApprove = async ({
-  token,
   id,
   data,
 }: {
-  token: string;
   id: number;
   data: ActivityApprovalProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/approve/${id}`,
-    data,
-    { headers }
-  );
+  return await axios.put(`/v1/trx/activity/approve/${id}`, data);
 };
 
 export const activityReject = async ({
-  token,
   id,
   data,
 }: {
-  token: string;
   id: number;
   data: ActivityApprovalProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/reject/${id}`,
-    data,
-    { headers }
-  );
+  return await axios.put(`/v1/trx/activity/reject/${id}`, data);
 };
 
-export const nofitication = async ({
-  token,
-  idUser,
-}: {
-  token: string;
-  idUser: number;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/activity/notifikasi/${idUser}`,
-    { headers }
-  );
+export const nofitication = async (idUser: number) => {
+  return await axios.get(`/v1/trx/activity/notifikasi/${idUser}`);
 };

@@ -33,7 +33,7 @@ interface ApprovalProps {
 }
 
 export default function ApprovalScreen() {
-  const { accessToken, user } = useAuth();
+  const { tokens, logout, user } = useAuth();
   const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
   const [approval, setApproval] = useState<ApprovalProps[]>([]);
   const navigation = useRouter();
@@ -46,23 +46,20 @@ export default function ApprovalScreen() {
     useCallback(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchPemutusByIdUserPemutus({
-            token: accessToken.token,
-            idUser: user.id_user
-          });
+          const response = await fetchPemutusByIdUserPemutus(user.id_user);
 
           if (response.data.code === 200) {
             setApproval(response.data.data);
           } else {
-            console.log("Gagal mengambil data");
+            logout();
           }
         } catch (error) {
-          console.log("Gagal mengambil data");
+          logout();
         }
       };
 
       fetchData();
-    }, [accessToken, user])
+    }, [user.id_user])
   );
 
   return (

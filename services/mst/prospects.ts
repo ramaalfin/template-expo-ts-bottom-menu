@@ -1,13 +1,7 @@
-import axios from "axios";
+import axios from "../index";
 
-export const fetchProspects = async (token: string) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  const response = await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/prospects`,
-    { headers }
-  );
+export const fetchProspects = async () => {
+  const response = await axios.get(`/v1/mst/prospects`);
 
   return response;
 };

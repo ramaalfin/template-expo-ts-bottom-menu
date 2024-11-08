@@ -33,13 +33,13 @@ interface NotificationProps {
 }
 
 export default function NotificationScreen() {
-    const { user, tokens } = useAuth();
+    const { user } = useAuth();
     const [notifications, setNotifications] = useState<NotificationProps[]>([]);
     const [value, setValue] = useState('semua');
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await nofitication({ token: tokens.access.token, idUser: user.id_user });
+            const response = await nofitication(user.id_user);
 
             if (response.data.code === 200) {
                 // sort by date
@@ -52,7 +52,7 @@ export default function NotificationScreen() {
         }
 
         fetchData();
-    }, [tokens.access.token, user.id_user]);
+    }, [user.id_user]);
 
     return (
         <View style={{ flex: 1, backgroundColor: "#F48120" }}>

@@ -79,27 +79,24 @@ interface PipelineScreenProps {
 export default function DetailPipeline() {
     const { id } = useLocalSearchParams();
     const navigation = useRouter();
-    const { accessToken } = useAuth();
+    const { logout } = useAuth();
 
     const [pipeline, setPipeline] = useState<PipelineScreenProps>();
 
     useFocusEffect(
         useCallback(() => {
             const fetchData = async () => {
-                const response = await fetchFundingById({
-                    token: accessToken.token,
-                    id_funding: Number(id)
-                });
+                const response = await fetchFundingById(Number(id));
 
                 if (response.data.code === 200) {
                     setPipeline(response.data.data);
                 } else {
-                    console.log("Gagal mengambil data");
+                    logout();
                 }
             }
 
             fetchData();
-        }, [accessToken])
+        }, [id])
     );
 
     return (

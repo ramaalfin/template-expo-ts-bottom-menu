@@ -149,7 +149,7 @@ const nama_bulan = [
 export default function DetailInputPipeline() {
     const { id } = useLocalSearchParams();
     const { control, handleSubmit, formState: { errors }, getValues, setValue } = useForm<DetailInputPipelineProps>();
-    const { accessToken, isLoading, user } = useAuth();
+    const { isLoading, logout, user } = useAuth();
     const navigation = useRouter();
 
     const [activeStep, setActiveStep] = useState(0);
@@ -177,10 +177,7 @@ export default function DetailInputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchFundingById({
-                id_funding: Number(id),
-                token: accessToken?.token
-            });
+            const response = await fetchFundingById(Number(id));
 
             if (response.data.code === 200) {
                 const data = response.data.data;
@@ -201,38 +198,38 @@ export default function DetailInputPipeline() {
                 setValue("potensi_dana", data?.target?.replace(/\B(?=(\d{3})+(?!\d))/g, ".") || "");
                 setValue("keterangan", data?.keterangan || "");
 
-                const product = await fetchProductByIdApplication(data.mst_product.mst_application.id_application, accessToken?.token);
-                const subSector = await fetchSubSectorByIdSector(data.mst_sub_sektor.mst_sektor.id_sektor, accessToken?.token);
+                const product = await fetchProductByIdApplication(data.mst_product.mst_application.id_application);
+                const subSector = await fetchSubSectorByIdSector(data.mst_sub_sektor.mst_sektor.id_sektor);
                 setProducts(product.data.data);
                 setSubSectors(subSector.data.data);
             } else {
-                console.log("Gagal mengambil data");
+                logout();
             }
         }
         fetchData();
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchAssignmentByIdUser(user?.id_user, accessToken?.token);
+            const response = await fetchAssignmentByIdUser(user?.id_user);
 
             if (response.data.code === 200) {
                 setSegments(response.data.data);
             } else {
-                console.log("Gagal mengambil data segment");
+                logout();
             }
         }
         fetchData();
-    }, []);
+    }, [user?.id_user]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusSegment(accessToken?.token);
+            const response = await fetchStatusSegment();
 
             if (response.data.code === 200) {
                 setStatusSegments(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data status segment");
+                logout();
             }
         }
         fetchData();
@@ -240,12 +237,12 @@ export default function DetailInputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchApplications(accessToken?.token);
+            const response = await fetchApplications();
 
             if (response.data.code === 200) {
                 setApplications(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data aplikasi");
+                logout();
             }
         }
         fetchData();
@@ -253,23 +250,23 @@ export default function DetailInputPipeline() {
 
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(id_application ? Number(id_application) : 0, accessToken?.token);
+        const response = await fetchProductByIdApplication(id_application ? Number(id_application) : 0);
 
         if (response.data.code === 200) {
             setProducts(response.data.data);
         } else {
-            console.log("Gagal mengambil data produk");
+            logout();
         }
     };
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchSectors(accessToken?.token);
+            const response = await fetchSectors();
 
             if (response.data.code === 200) {
                 setSectors(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data sektor");
+                logout();
             }
         }
         fetchData();
@@ -277,23 +274,23 @@ export default function DetailInputPipeline() {
 
     const handleSectorChange = async (item: any) => {
         const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
-        const response = await fetchSubSectorByIdSector(Number(id_sector), accessToken?.token);
+        const response = await fetchSubSectorByIdSector(Number(id_sector));
 
         if (response.data.code === 200) {
             setSubSectors(response.data.data);
         } else {
-            console.log("Gagal mengambil data sub sektor");
+            logout();
         }
     }
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchProspects(accessToken?.token);
+            const response = await fetchProspects();
 
             if (response.data.code === 200) {
                 setPipelines(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data pipeline");
+                logout();
             }
         }
         fetchData();
@@ -301,16 +298,16 @@ export default function DetailInputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchUserById(user?.id_user, accessToken?.token);
+            const response = await fetchUserById(user?.id_user);
 
             if (response.data.code === 200) {
                 setApprovals(response.data.data.pemutus);
             } else {
-                console.log("Gagal mengambil data pemutus");
+                logout();
             }
         }
         fetchData();
-    }, []);
+    }, [user?.id_user]);
 
     const dataSegment = segments.map((item) => ({
         label: `${item.mst_goalsetting.mst_segment.segment} - ${nama_bulan[item.mst_goalsetting.bulan - 1].nama} - ${item.mst_goalsetting.mst_application.application} - ${item.mst_goalsetting.target}`,
@@ -362,7 +359,6 @@ export default function DetailInputPipeline() {
 
         try {
             const response = await updateFunding({
-                token: accessToken?.token,
                 data: dataFunding,
                 id_funding: Number(id)
             });

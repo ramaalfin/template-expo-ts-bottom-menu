@@ -52,7 +52,7 @@ interface InputSpecialRateProps {
 export default function InputSpecialRate() {
     const { control, handleSubmit, formState: { errors }, getValues, setValue } = useForm<InputSpecialRateProps>();
     const navigation = useRouter();
-    const { accessToken, isLoading } = useAuth();
+    const { isLoading, logout } = useAuth();
 
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
@@ -66,12 +66,12 @@ export default function InputSpecialRate() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchTerms(accessToken.token);
+            const response = await fetchTerms();
 
             if (response.data.code === 200) {
                 setJangkaWaktu(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data jangka waktu");
+                logout();
             }
         }
         fetchData();
@@ -79,12 +79,12 @@ export default function InputSpecialRate() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusRekening(accessToken.token);
+            const response = await fetchStatusRekening();
 
             if (response.data.code === 200) {
                 setstatusRekening(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data status rekening");
+                logout();
             }
         }
         fetchData();
@@ -135,7 +135,7 @@ export default function InputSpecialRate() {
         };
 
         try {
-            const response = await createSpecialRate({ token: accessToken.token, data: formData });
+            const response = await createSpecialRate(formData);
 
             if (response.data.code === 200) {
                 setModalVisible(true);

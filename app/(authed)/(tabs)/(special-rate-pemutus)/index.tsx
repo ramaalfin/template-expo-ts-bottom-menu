@@ -28,7 +28,7 @@ interface SpecialRateProps {
 }
 
 export default function SpesialRatePemutusScreen() {
-  const { accessToken, user } = useAuth();
+  const { logout, user } = useAuth();
   const navigation = useRouter();
 
   const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
@@ -42,23 +42,20 @@ export default function SpesialRatePemutusScreen() {
     useCallback(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchSpecialRateByIdUserPemutus({
-            idUser: user.id_user,
-            token: accessToken.token
-          });
+          const response = await fetchSpecialRateByIdUserPemutus(user.id_user);
 
           if (response.data.code === 200) {
             setSpecialRate(response.data.data);
           } else {
-            console.log("Gagal mengambil data");
+            logout();
           }
         } catch (error) {
-          console.log("Gagal mengambil data");
+          logout();
         }
       };
 
       fetchData();
-    }, [accessToken, user])
+    }, [user.id_user])
   );
 
   return (

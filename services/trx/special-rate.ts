@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../index";
 
 interface DataSpecialRateProps {
   no_rekening: string;
@@ -17,111 +17,38 @@ interface SpecialRateApprovalProps {
   approve_ket: string;
 }
 
-export const fetchSpecialRateByIdUser = async ({
-  idUser,
-  token,
-}: {
-  idUser: number;
-  token: string;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/user/${idUser}`,
-    { headers }
-  );
+export const fetchSpecialRateByIdUser = async (idUser: number) => {
+  return await axios.get(`/v1/trx/special-rate/user/${idUser}`);
 };
 
-export const fetchSpecialRateByIdUserPemutus = async ({
-  idUser,
-  token,
-}: {
-  idUser: number;
-  token: string;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/pemutus/${idUser}`,
-    { headers }
-  );
+export const fetchSpecialRateByIdUserPemutus = async (idUser: number) => {
+  return await axios.get(`/v1/trx/special-rate/pemutus/${idUser}`);
 };
 
-export const fetchSpecialRateById = async ({
-  id,
-  token,
-}: {
-  id: number;
-  token: string;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/${id}`,
-    { headers }
-  );
+export const fetchSpecialRateById = async (id: number) => {
+  return await axios.get(`/v1/trx/special-rate/${id}`);
 };
 
-export const createSpecialRate = async ({
-  token,
-  data,
-}: {
-  token: string;
-  data: DataSpecialRateProps;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.post(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate`,
-    data,
-    { headers }
-  );
+export const createSpecialRate = async (data: DataSpecialRateProps) => {
+  return await axios.post(`/v1/trx/special-rate`, data);
 };
 
 export const specialRateApprove = async ({
-  token,
   id,
   data,
 }: {
-  token: string;
   id: number;
   data: SpecialRateApprovalProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/approve/${id}`,
-    data,
-    { headers }
-  );
+  return await axios.put(`/v1/trx/special-rate/approve/${id}`, data);
 };
 
 export const specialRateReject = async ({
-  token,
   id,
   data,
 }: {
-  token: string;
   id: number;
   data: SpecialRateApprovalProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/trx/special-rate/reject/${id}`,
-    data,
-    { headers }
-  );
+  return await axios.put(`/v1/trx/special-rate/reject/${id}`, data);
 };

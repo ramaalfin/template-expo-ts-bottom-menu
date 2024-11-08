@@ -1,12 +1,17 @@
 import { Redirect, Stack } from "expo-router";
+import { useState } from "react";
+import { useAuth } from "~/context/AuthContext";
 
 export default function AppLayout() {
-  const isLogged = true; // Gantilah logika sesuai autentikasi Anda
+  const { isLoading, isLoggedIn } = useAuth();
 
-  if (!isLogged) {
-    // Pastikan navigasi terjadi setelah layout telah di-render
+  if (isLoading) {
+    return null;
+  }
+
+  if (!isLoggedIn) {
     return <Redirect href="/login" />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <Stack screenOptions={{ headerShown: false }} />
 }

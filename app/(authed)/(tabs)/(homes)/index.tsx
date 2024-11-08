@@ -43,7 +43,7 @@ interface ActivityTodayProps {
 
 export default function HomeScreen() {
   const navigation = useRouter();
-  const { accessToken, user } = useAuth();
+  const { tokens, logout, user } = useAuth();
   const [photo, setPhoto] = useState(require("~/assets/images/nophoto.jpg"));
 
   const [data, setData] = useState<DataProps>();
@@ -55,38 +55,32 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await dashboardByIdUser({
-        token: accessToken.token,
-        idUser: user.id_user,
-      });
+      const response = await dashboardByIdUser(user.id_user);
 
       if (response.data.code === 200) {
         setData(response.data.data);
       } else {
-        console.log("Gagal mengambil data");
+        logout();
       }
     };
 
     fetchData();
-  }, []);
+  }, [user.id_user]);
 
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
-        const response = await fetchActivitiesByIdUserToday({
-          token: accessToken.token,
-          idUser: user.id_user,
-        });
+        const response = await fetchActivitiesByIdUserToday(user.id_user);
 
         if (response.data.code === 200) {
           setActivityToday(response.data.data);
         } else {
-          console.log("Gagal mengambil data");
+          logout();
         }
       }
 
       fetchData();
-    }, [accessToken, user])
+    }, [user.id_user])
   );
 
   return (

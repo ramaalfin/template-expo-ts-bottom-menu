@@ -99,7 +99,7 @@ interface UpdateActivityProps {
 export default function UpdateActivity() {
     const { id } = useLocalSearchParams();
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<UpdateActivityProps>();
-    const { accessToken } = useAuth();
+    const { logout } = useAuth();
     const navigation = useRouter();
     const { longitude, latitude } = useLocation();
 
@@ -120,30 +120,27 @@ export default function UpdateActivity() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchActivityById({
-                token: accessToken.token,
-                id: Number(id),
-            });
+            const response = await fetchActivityById(Number(id));
 
             if (response.data.data) {
                 setActivity(response.data.data);
             } else {
-                console.log("Tidak ada data");
+                logout();
             }
         }
 
         fetchData();
-    }, []);
+    }, [id]);
 
     // req: status hasil
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchHasil(accessToken?.token);
+            const response = await fetchHasil();
 
             if (response.data.data) {
                 setStatusHasil(response.data.data.data);
             } else {
-                console.log("Tidak ada data");
+                logout();
             }
         }
 
@@ -153,12 +150,12 @@ export default function UpdateActivity() {
     // req: tindakan hasil
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchTindakan(accessToken?.token);
+            const response = await fetchTindakan();
 
             if (response.data.data) {
                 setTindakanHasil(response.data.data.data);
             } else {
-                console.log("Tidak ada data");
+                logout();
             }
         }
 
@@ -168,12 +165,12 @@ export default function UpdateActivity() {
     // req: jenis produk
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchApplications(accessToken?.token);
+            const response = await fetchApplications();
 
             if (response.data.code === 200) {
                 setApplications(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data aplikasi");
+                logout();
             }
         }
         fetchData();
@@ -182,24 +179,24 @@ export default function UpdateActivity() {
     // req: nama produk
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
-        const response = await fetchProductByIdApplication(id_application, accessToken?.token);
+        const response = await fetchProductByIdApplication(id_application);
 
         if (response.data.code === 200) {
             setProducts(response.data.data);
         } else {
-            console.log("Gagal mengambil data produk");
+            logout();
         }
     };
 
     // req: kegiatan
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchKegiatan(accessToken.token);
+            const response = await fetchKegiatan();
 
             if (response.data.code === 200) {
                 setKegiatan(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data kegiatan");
+                logout();
             }
         }
 
@@ -300,11 +297,9 @@ export default function UpdateActivity() {
 
         try {
             const response = !isEnabled ? await updateResultActivityById({
-                token: accessToken.token,
                 id: Number(activity?.id_activity),
                 data: formData,
             }) : await updateResultActivityNextAppointmentById({
-                token: accessToken.token,
                 id: Number(activity?.id_activity),
                 data: nextAppointment,
             });

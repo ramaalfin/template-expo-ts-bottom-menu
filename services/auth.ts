@@ -1,4 +1,5 @@
 import axios from "axios";
+import axiosWithAuth from "./index";
 
 interface LoginProps {
   email: string;
@@ -12,7 +13,6 @@ interface RefreshTokenProps {
 interface ChangePasswordProps {
   password: string;
   newPassword: string;
-  token: string;
 }
 
 export const loginUser = async ({ email, password }: LoginProps) => {
@@ -55,24 +55,14 @@ export const refreshTokenUser = async ({ refreshToken }: RefreshTokenProps) => {
 };
 
 export const changePassword = async ({
-  token,
   password,
   newPassword,
 }: ChangePasswordProps) => {
   try {
-    const response = await axios.post(
-      `${process.env.EXPO_PUBLIC_API_URL}/v1/auth/change-password`,
-      {
-        password,
-        newPassword,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axiosWithAuth.post(`/v1/auth/change-password`, {
+      password,
+      newPassword,
+    });
 
     return response.data;
   } catch (error: any) {

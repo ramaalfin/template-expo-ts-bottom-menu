@@ -50,7 +50,7 @@ interface UpdateSpecialRateProps {
 export default function DetailSpecialRatePemutus() {
     const { control, handleSubmit, formState: { errors } } = useForm<UpdateSpecialRateProps>();
     const { id } = useLocalSearchParams();
-    const { accessToken } = useAuth();
+    const { logout } = useAuth();
 
     const navigation = useRouter();
     const [specialRate, setSpecialRate] = useState<DetailSpecialRatePemutusProps | null>(null);
@@ -61,25 +61,21 @@ export default function DetailSpecialRatePemutus() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchSpecialRateById({
-                token: accessToken.token,
-                id: Number(id),
-            });
+            const response = await fetchSpecialRateById(Number(id));
 
             if (response.data.data) {
                 setSpecialRate(response.data.data);
             } else {
-                console.log("Tidak ada data");
+                logout();
             }
         }
 
         fetchData();
-    }, []);
+    }, [id]);
 
     const submitReject = async (data: UpdateSpecialRateProps) => {
         try {
             const response = await specialRateReject({
-                token: accessToken.token,
                 id: Number(id),
                 data: data,
             });
@@ -103,7 +99,6 @@ export default function DetailSpecialRatePemutus() {
     const submitApprove = async (data: UpdateSpecialRateProps) => {
         try {
             const response = await specialRateApprove({
-                token: accessToken.token,
                 id: Number(id),
                 data: data,
             });

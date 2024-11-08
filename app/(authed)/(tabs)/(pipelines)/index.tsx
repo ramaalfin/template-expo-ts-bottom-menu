@@ -35,7 +35,7 @@ interface PipelineScreenProps {
 
 export default function PipelineScreen() {
   const navigation = useRouter();
-  const { accessToken, user } = useAuth();
+  const { logout, user } = useAuth();
 
   const [pipelines, setPipelines] = useState<PipelineScreenProps[]>([]);
   const [filteredPipelines, setFilteredPipelines] = useState<PipelineScreenProps[]>([]);
@@ -46,21 +46,21 @@ export default function PipelineScreen() {
     useCallback(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchFundingByIdUser(user.id_user, accessToken.token,);
+          const response = await fetchFundingByIdUser(user.id_user);
 
           if (response.data.code === 200) {
             setPipelines(response.data.data);
             setFilteredPipelines(response.data.data);
           } else {
-            console.log("Gagal mengambil data");
+            logout();
           }
         } catch (error) {
-          console.log("Gagal mengambil data");
+          logout();
         }
       };
 
       fetchData();
-    }, [accessToken])
+    }, [user.id_user])
   );
 
   const handleSearch = (keyword: string) => {
@@ -93,11 +93,7 @@ export default function PipelineScreen() {
             name="search"
             size={24}
             color="#707070"
-            style={{
-              position: "absolute",
-              top: hp("2%"),
-              right: 25
-            }}
+            style={{ position: "absolute", top: hp("2%"), right: 25 }}
           />
         </View>
 
@@ -135,11 +131,7 @@ export default function PipelineScreen() {
               </View>
             </View>
           ))) : (
-            <Text style={{
-              textAlign: "center",
-              marginTop: 20,
-              fontFamily: "Inter_400Regular",
-            }}>
+            <Text style={{ textAlign: "center", marginTop: 20, fontFamily: "Inter_400Regular" }}>
               Data tidak ditemukan
             </Text>
           )}

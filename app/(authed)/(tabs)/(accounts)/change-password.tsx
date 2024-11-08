@@ -38,7 +38,6 @@ export default function ChangePasswordScreen() {
     const submit = async (data: ChangePasswordProps) => {
         try {
             const response = await changePassword({
-                token: tokens.access.token,
                 password: data.currentPassword,
                 newPassword: data.newPassword,
             });

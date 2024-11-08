@@ -47,26 +47,23 @@ interface DetailSpecialRateProps {
 
 export default function DetailSpecialRate() {
     const { id } = useLocalSearchParams();
-    const { accessToken } = useAuth();
+    const { logout } = useAuth();
 
     const [specialRate, setSpecialRate] = useState<DetailSpecialRateProps | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchSpecialRateById({
-                token: accessToken.token,
-                id: Number(id),
-            });
+            const response = await fetchSpecialRateById(Number(id));
 
             if (response.data.data) {
                 setSpecialRate(response.data.data);
             } else {
-                console.log("Tidak ada data");
+                logout();
             }
         }
 
         fetchData();
-    }, []);
+    }, [id]);
 
     return (
         <View style={{ flex: 1, backgroundColor: "#F48120" }}>

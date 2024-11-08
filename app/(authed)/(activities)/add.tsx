@@ -50,7 +50,7 @@ interface AddActivityProps {
 
 export default function AddActivity() {
     const { control, handleSubmit, formState: { errors }, getValues } = useForm<AddActivityProps>();
-    const { accessToken, isLoading, user } = useAuth();
+    const { isLoading, logout, user } = useAuth();
     const { longitude, latitude } = useLocation();
     const navigation = useRouter();
     const [modalVisible, setModalVisible] = useState(false);
@@ -70,17 +70,17 @@ export default function AddActivity() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchFundingByIdUser(user.id_user, accessToken.token);
+            const response = await fetchFundingByIdUser(user.id_user);
 
             if (response.data.code === 200) {
                 setClients(response.data.data);
             } else {
-                console.log("Gagal mengambil data client");
+                logout();
             }
         }
 
         fetchData();
-    }, []);
+    }, [user.id_user]);
 
     const handleClientChange = (value: any) => {
         const client = clients.find((item) => item.id_funding === value.value);
@@ -96,12 +96,12 @@ export default function AddActivity() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchKegiatan(accessToken.token);
+            const response = await fetchKegiatan();
 
             if (response.data.code === 200) {
                 setKegiatan(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data kegiatan");
+                logout();
             }
         }
 
@@ -110,12 +110,12 @@ export default function AddActivity() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusPipeline(accessToken.token);
+            const response = await fetchStatusPipeline();
 
             if (response.data.code === 200) {
                 setStatusPipeline(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data status pipeline");
+                logout();
             }
         }
 
@@ -182,7 +182,7 @@ export default function AddActivity() {
         }
 
         try {
-            const response = await createActivity({ token: accessToken.token, data: formData });
+            const response = await createActivity(formData);
 
             if (response.data.code === 200) {
                 setModalMessage("Input Data Berhasil");

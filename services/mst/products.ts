@@ -1,15 +1,8 @@
-import axios from "axios";
+import axios from "../index";
 
-export const fetchProductByIdApplication = async (
-  id_application: number,
-  token: string
-) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
+export const fetchProductByIdApplication = async (id_application: number) => {
   const response = await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/products/application/${id_application}`,
-    { headers }
+    `/v1/mst/products/application/${id_application}`
   );
 
   return response;

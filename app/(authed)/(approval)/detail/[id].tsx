@@ -71,7 +71,7 @@ interface UpdateApprovalProps {
 export default function UpdateApproval() {
     const { id } = useLocalSearchParams();
     const { control, handleSubmit, formState: { errors } } = useForm<UpdateApprovalProps>();
-    const { accessToken } = useAuth();
+    const { tokens, logout } = useAuth();
 
     const navigation = useRouter();
     const [activity, setActivity] = useState<ApprovalProps | null>(null);
@@ -82,20 +82,17 @@ export default function UpdateApproval() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchActivityById({
-                token: accessToken.token,
-                id: Number(id),
-            });
+            const response = await fetchActivityById(Number(id));
 
             if (response.data.data) {
                 setActivity(response.data.data);
             } else {
-                console.log("Tidak ada data");
+                logout();
             }
         }
 
         fetchData();
-    }, []);
+    }, [id]);
 
     const submitReject = async (data: UpdateApprovalProps) => {
         const formData = {
@@ -104,7 +101,6 @@ export default function UpdateApproval() {
 
         try {
             const response = await activityReject({
-                token: accessToken.token,
                 id: Number(id),
                 data: formData,
             });
@@ -132,7 +128,6 @@ export default function UpdateApproval() {
 
         try {
             const response = await activityApprove({
-                token: accessToken.token,
                 id: Number(id),
                 data: formData,
             });

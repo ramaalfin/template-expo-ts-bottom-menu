@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../index";
 
 // create props interface
 interface DataFundingProps {
@@ -17,82 +17,28 @@ interface DataFundingProps {
   id_checker: string;
 }
 
-export const fetchAllFunding = async (token: string) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings`, {
-    headers,
-  });
+export const fetchAllFunding = async () => {
+  return await axios.get(`/v1/mst/fundings`);
 };
 
-export const fetchFundingByIdUser = async (id_user: number, token: string) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/user/${id_user}`,
-    {
-      headers,
-    }
-  );
+export const fetchFundingByIdUser = async (id_user: number) => {
+  return await axios.get(`/v1/mst/fundings/user/${id_user}`);
 };
 
-export const fetchFundingById = async ({
-  id_funding,
-  token,
-}: {
-  id_funding: number;
-  token: string;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/${id_funding}`,
-    {
-      headers,
-    }
-  );
+export const fetchFundingById = async (id_funding: number) => {
+  return await axios.get(`/v1/mst/fundings/${id_funding}`);
 };
 
-export const storeFunding = async ({
-  token,
-  data,
-}: {
-  token: string;
-  data: DataFundingProps;
-}) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.post(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings`,
-    data,
-    { headers }
-  );
+export const storeFunding = async (data: DataFundingProps) => {
+  return await axios.post(`/v1/mst/fundings`, data);
 };
 
 export const updateFunding = async ({
   id_funding,
-  token,
   data,
 }: {
   id_funding: number;
-  token: string;
   data: DataFundingProps;
 }) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  return await axios.put(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/mst/fundings/${id_funding}`,
-    data,
-    { headers }
-  );
+  return await axios.put(`/v1/mst/fundings/${id_funding}`, data);
 };

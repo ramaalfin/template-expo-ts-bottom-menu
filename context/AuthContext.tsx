@@ -1,71 +1,66 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
+import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from "react";
+import { Href, useRouter } from "expo-router";
 
 // storage
 import * as SecureStore from 'expo-secure-store';
 
-import { useRouter } from "expo-router";
-
 // services
-import { loginUser } from "~/services/auth";
-import { Href } from "expo-router";
+import { loginUser, refreshTokenUser } from "~/services/auth";
 
 interface AuthContextType {
-    isAuthenticated: boolean;
+    isLoggedIn: boolean;
+    isLoading: boolean;
     user: {
         id_user: number;
         id_jabatan: number;
         email: string;
         nama: string;
         photo: string;
-    }
-    accessToken: {
-        token: string;
-        expires: string;
+    };
+    tokens: {
+        access: {
+            token: string;
+            expires: string;
+        };
+        refresh: {
+            token: string;
+            expires: string;
+        };
     }
     login: (email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-    isLoading: boolean;
+    logout: VoidFunction;
+    refreshAccessToken: VoidFunction;
     errorMessage: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+    return useContext(AuthContext) as AuthContextType;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState({
-        id_user: 0,
-        id_jabatan: 0,
-        email: '',
-        nama: '',
-        photo: '',
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [user, setUser] = useState({ id_user: 0, id_jabatan: 0, email: '', nama: '', photo: '' });
+    const [tokens, setTokens] = useState({
+        access: { token: '', expires: '' },
+        refresh: { token: '', expires: '' },
     });
-    const [accessToken, setAccessToken] = useState({
-        token: '',
-        expires: '',
-    });
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
         const loadAuthData = async () => {
-            const storedUser = await SecureStore.getItemAsync('user');
-            const storedToken = await SecureStore.getItemAsync('accessToken');
+            const user = await SecureStore.getItemAsync('user');
+            const tokens = await SecureStore.getItemAsync('tokens');
 
-            if (storedUser && storedToken) {
-                setUser(JSON.parse(storedUser));
-                setAccessToken(JSON.parse(storedToken));
-                setIsAuthenticated(true);
+            if (user && tokens) {
+                setUser(JSON.parse(user));
+                setTokens(JSON.parse(tokens));
+                setIsLoggedIn(true);
                 router.replace('/(homes)' as Href);
-            } else {
+            } else if (isLoggedIn === false) {
                 router.replace('/login' as Href);
             }
         };
@@ -74,67 +69,85 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     const login = async (email: string, password: string) => {
-        setIsLoading(true);
         try {
+            setIsLoading(true);
+
             const response = await loginUser({ email, password });
 
             if (response.code === 200) {
                 const user = response.data.user;
-                const token = response.data.tokens.access;
+                const token = response.data.tokens;
 
-                // Simpan data user dan token ke Secure Store
                 await SecureStore.setItemAsync('user', JSON.stringify(user));
-                await SecureStore.setItemAsync('accessToken', JSON.stringify(token));
+                await SecureStore.setItemAsync('tokens', JSON.stringify(token));
 
-                // Update state
                 setUser(user);
-                setAccessToken(token);
-                setIsAuthenticated(true);
+                setTokens(token);
+                setIsLoggedIn(true);
                 setErrorMessage(null);
 
-                // Redirect ke halaman utama
                 router.replace('/(homes)' as Href);
             } else {
                 setErrorMessage(response.message);
             }
         } catch (error) {
             setErrorMessage("Login failed");
+            setIsLoggedIn(false);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const refreshAccessToken = async () => {
+        try {
+            const response = await refreshTokenUser({ refreshToken: tokens.refresh.token });
+
+            if (response.code === 200) {
+                await SecureStore.setItemAsync('tokens', JSON.stringify(response.data));
+                setTokens(response.data);
+                setIsLoggedIn(true);
+            } else {
+                logout();
+            }
+        } catch (error) {
+            logout();
         }
     };
 
     const logout = async () => {
-        setIsLoading(true);
         try {
+            setIsLoading(true);
+
             await SecureStore.deleteItemAsync('user');
-            await SecureStore.deleteItemAsync('accessToken');
+            await SecureStore.deleteItemAsync('tokens');
 
-            // Reset state
-            setUser({
-                id_user: 0,
-                id_jabatan: 0,
-                email: '',
-                nama: '',
-                photo: '',
+            setUser({ id_user: 0, id_jabatan: 0, email: '', nama: '', photo: '' });
+            setTokens({
+                access: { token: '', expires: '' },
+                refresh: { token: '', expires: '' },
             });
-            setAccessToken({
-                token: '',
-                expires: '',
-            });
-            setIsAuthenticated(false);
 
-            // Redirect ke halaman login
-            router.replace('/login');
+            setIsLoggedIn(false);
         } catch (error) {
             setErrorMessage("Logout failed");
+            setIsLoggedIn(false);
         } finally {
             setIsLoading(false);
+            router.replace('/login');
         }
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, accessToken, login, logout, isLoading, errorMessage }}>
+        <AuthContext.Provider value={{
+            isLoggedIn,
+            user,
+            tokens,
+            login,
+            logout,
+            refreshAccessToken,
+            isLoading,
+            errorMessage,
+        }}>
             {children}
         </AuthContext.Provider>
     );

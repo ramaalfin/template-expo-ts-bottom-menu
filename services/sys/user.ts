@@ -1,19 +1,7 @@
-import axios from "axios";
+import axios from "../index";
 
-export const fetchUsers = async () => {
-  return await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/sys/users/active`
-  );
-};
-
-export const fetchUserById = async (id_user: number, token: string) => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  const response = await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/v1/sys/users/${id_user}`,
-    { headers }
-  );
+export const fetchUserById = async (id_user: number) => {
+  const response = await axios.get(`/v1/sys/users/${id_user}`);
 
   return response;
 };

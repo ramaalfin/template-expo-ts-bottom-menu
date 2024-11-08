@@ -148,7 +148,7 @@ const nama_bulan = [
 
 export default function InputPipeline() {
     const { control, handleSubmit, formState: { errors } } = useForm<InputPipelineProps>();
-    const { accessToken, isLoading, user } = useAuth();
+    const { isLoading, logout, user } = useAuth();
     const navigation = useRouter();
 
     const [activeStep, setActiveStep] = useState(0);
@@ -169,25 +169,25 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchAssignmentByIdUser(user?.id_user, accessToken?.token);
+            const response = await fetchAssignmentByIdUser(user?.id_user);
 
             if (response.data.code === 200) {
                 setSegments(response.data.data);
             } else {
-                console.log("Gagal mengambil data segment");
+                logout();
             }
         }
         fetchData();
-    }, []);
+    }, [user?.id_user]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchStatusSegment(accessToken?.token);
+            const response = await fetchStatusSegment();
 
             if (response.data.code === 200) {
                 setStatusSegments(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data status segment");
+                logout();
             }
         }
         fetchData();
@@ -195,12 +195,12 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchApplications(accessToken?.token);
+            const response = await fetchApplications();
 
             if (response.data.code === 200) {
                 setApplications(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data aplikasi");
+                logout();
             }
         }
         fetchData();
@@ -209,11 +209,11 @@ export default function InputPipeline() {
     const handleProductChange = async (item: any) => {
         const id_application = applications.find((app) => app.application === item.label)?.id_application;
         if (id_application) {
-            const response = await fetchProductByIdApplication(Number(id_application), accessToken?.token);
+            const response = await fetchProductByIdApplication(Number(id_application));
             if (response.data.code === 200) {
                 setProducts(response.data.data);
             } else {
-                console.log("Gagal mengambil data produk");
+                logout();
             }
         } else {
             console.log("id_application is undefined");
@@ -222,12 +222,12 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchSectors(accessToken?.token);
+            const response = await fetchSectors();
 
             if (response.data.code === 200) {
                 setSectors(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data sektor");
+                logout();
             }
         }
         fetchData();
@@ -235,23 +235,23 @@ export default function InputPipeline() {
 
     const handleSectorChange = async (item: any) => {
         const id_sector = sectors.find((sector) => sector.sektor === item.label)?.id_sektor;
-        const response = await fetchSubSectorByIdSector(Number(id_sector), accessToken?.token);
+        const response = await fetchSubSectorByIdSector(Number(id_sector));
 
         if (response.data.code === 200) {
             setSubSectors(response.data.data);
         } else {
-            console.log("Gagal mengambil data sub sektor");
+            logout();
         }
     }
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchProspects(accessToken?.token);
+            const response = await fetchProspects();
 
             if (response.data.code === 200) {
                 setPipelines(response.data.data.data);
             } else {
-                console.log("Gagal mengambil data pipeline");
+                logout();
             }
         }
         fetchData();
@@ -259,16 +259,16 @@ export default function InputPipeline() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchUserById(user?.id_user, accessToken?.token);
+            const response = await fetchUserById(user?.id_user);
 
             if (response.data.code === 200) {
                 setApprovals(response.data.data.pemutus);
             } else {
-                console.log("Gagal mengambil data pemutus");
+                logout();
             }
         }
         fetchData();
-    }, []);
+    }, [user?.id_user]);
 
     const dataSegment = segments.map((item) => ({
         label: `${item.mst_goalsetting.mst_segment.segment} - ${nama_bulan[item.mst_goalsetting.bulan - 1].nama} - ${item.mst_goalsetting.mst_application.application} - ${item.mst_goalsetting.target}`,
@@ -327,7 +327,7 @@ export default function InputPipeline() {
         }
 
         try {
-            const response = await storeFunding({ token: accessToken?.token, data: dataFunding });
+            const response = await storeFunding(dataFunding);
 
             if (response.data.code === 200) {
                 setModalVisible(true);
