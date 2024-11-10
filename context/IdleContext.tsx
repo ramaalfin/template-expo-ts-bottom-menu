@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useState, ReactNode, useEffect, useRef } from "react";
 import { Modal, Text, View, Button } from "react-native";
 import UserInactivity from "react-native-user-inactivity";
 import { useAuth } from "./AuthContext";
@@ -21,16 +21,17 @@ export const IdleProvider: React.FC<IdleProviderProps> = ({ children }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [userInactivityKey, setUserInactivityKey] = useState(0);
     const { isLoggedIn, logout, refreshAccessToken } = useAuth();
+    const modalInactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!isLoggedIn) {
-            setIsModalVisible(false); // Tutup modal jika user logout
-            setUserInactivityKey(prevKey => prevKey + 1); // Reset timer saat logout
+            setIsModalVisible(false);
+            setUserInactivityKey(prevKey => prevKey + 1);
         }
     }, [isLoggedIn]);
 
     const handleInactive = () => {
-        if (isLoggedIn) { // Cek login status sebelum menampilkan modal
+        if (isLoggedIn) {
             setIsModalVisible(true);
         }
     };
@@ -38,7 +39,27 @@ export const IdleProvider: React.FC<IdleProviderProps> = ({ children }) => {
     const handleCloseModal = () => {
         setIsModalVisible(false);
         setUserInactivityKey(prevKey => prevKey + 1);
+        clearModalInactivityTimeout();
     };
+
+    const clearModalInactivityTimeout = () => {
+        if (modalInactivityTimeoutRef.current) {
+            clearTimeout(modalInactivityTimeoutRef.current);
+            modalInactivityTimeoutRef.current = null;
+        }
+    };
+
+    useEffect(() => {
+        if (isModalVisible) {
+            modalInactivityTimeoutRef.current = setTimeout(() => {
+                logout();
+                setIsModalVisible(false);
+            }, 10000);
+
+        } else {
+            clearModalInactivityTimeout();
+        }
+    }, [isModalVisible]);
 
     return (
         <IdleContext.Provider value={{ isModalVisible, setIsModalVisible }}>

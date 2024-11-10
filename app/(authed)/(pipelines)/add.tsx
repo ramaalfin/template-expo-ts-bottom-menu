@@ -270,17 +270,31 @@ export default function InputPipeline() {
         fetchData();
     }, [user?.id_user]);
 
-    const dataSegment = segments.map((item) => ({
+    const dataSegment = segments ? segments.map((item) => ({
         label: `${item.mst_goalsetting.mst_segment.segment} - ${nama_bulan[item.mst_goalsetting.bulan - 1].nama} - ${item.mst_goalsetting.mst_application.application} - ${item.mst_goalsetting.target}`,
         value: item.id_assignment
-    }));
-    const dataStatusSegment = statusSegments.map((item) => ({ label: item.sts_segment, value: item.id_sts_segment }));
-    const dataJenisProduk = applications.map((item) => ({ label: item.application, value: item.id_application }));
-    const dataNamaProduk = products.map((item) => ({ label: item.product, value: item.id_product }));
-    const dataSector = sectors.map((item) => ({ label: item.sektor, value: item.id_sektor }));
-    const dataSubSector = subSectors.map((item) => ({ label: item.sub_sektor, value: item.id_sub_sektor }));
-    const dataLevelPipeline = pipelines.map((item) => ({ label: item.prospect, value: item.id_prospect }));
-    const dataApproval = approvals.map((item) => ({ label: item.nama, value: item.id_user }));
+    })) : [];
+    const dataStatusSegment = statusSegments ? statusSegments.map((item) => ({
+        label: item.sts_segment, value: item.id_sts_segment
+    })) : [];
+    const dataJenisProduk = applications ? applications.map((item) => ({
+        label: item.application, value: item.id_application
+    })) : [];
+    const dataNamaProduk = products ? products.map((item) => ({
+        label: item.product, value: item.id_product
+    })) : [];
+    const dataSector = sectors ? sectors.map((item) => ({
+        label: item.sektor, value: item.id_sektor
+    })) : [];
+    const dataSubSector = subSectors ? subSectors.map((item) => ({
+        label: item.sub_sektor, value: item.id_sub_sektor
+    })) : [];
+    const dataLevelPipeline = pipelines ? pipelines.map((item) => ({
+        label: item.prospect, value: item.id_prospect
+    })) : [];
+    const dataApproval = approvals ? approvals.map((item) => ({
+        label: item.nama, value: item.id_user
+    })) : [];
 
     const scrollViewRef = useRef<ScrollView>(null);
 
@@ -383,7 +397,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataSegment}
+                                                    data={dataSegment || []}
                                                     onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
@@ -412,7 +426,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataStatusSegment}
+                                                    data={dataStatusSegment || []}
                                                     onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
@@ -591,7 +605,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataJenisProduk}
+                                                    data={dataJenisProduk || []}
                                                     onChange={(item) => {
                                                         handleProductChange(item);
                                                         onChange(item.value);
@@ -623,7 +637,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataNamaProduk}
+                                                    data={dataNamaProduk || []}
                                                     onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
@@ -652,7 +666,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataSector}
+                                                    data={dataSector || []}
                                                     onChange={(item) => {
                                                         handleSectorChange(item);
                                                         onChange(item.value);
@@ -684,7 +698,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataSubSector}
+                                                    data={dataSubSector || []}
                                                     onChange={(item) => onChange(item.value)}
                                                     value={value}
                                                 />
@@ -713,7 +727,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder="Pilih"
-                                                    data={dataLevelPipeline}
+                                                    data={dataLevelPipeline || []}
                                                     value={value}
                                                     onChange={(item) => onChange(item.value)}
                                                 />
@@ -742,7 +756,7 @@ export default function InputPipeline() {
                                                     labelField="label"
                                                     valueField="value"
                                                     placeholder={"Pilih"}
-                                                    data={dataApproval}
+                                                    data={dataApproval || []}
                                                     value={value}
                                                     onChange={(item) => onChange(item.value)}
                                                 />

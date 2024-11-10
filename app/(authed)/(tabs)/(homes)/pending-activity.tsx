@@ -5,13 +5,58 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+// context
+import { useAuth } from "~/context/AuthContext";
+
 // icons
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // components
 import Topbar from "~/components/TopBar";
+import { useEffect, useState } from "react";
+import { fetchActivitiesByIdUser } from "~/services/trx/activity";
+import { formatDate } from "~/utils/formatDate";
+
+interface PendingActivityProps {
+  deskripsi: string;
+  mst_funding: {
+    nama: string;
+    sys_user_checker: {
+      nama: string;
+    }
+  };
+  mst_kegiatan: {
+    kegiatan: string;
+  },
+  tanggal: string;
+  jam_mulai: string;
+  jam_selesai: string;
+  status: string;
+  mst_sts_approval: {
+    id_sts_approval: number;
+    sts_approval: string;
+  }
+}
 
 export default function PendingActivityScreen() {
+  const { logout, user } = useAuth();
+
+  const [data, setData] = useState<PendingActivityProps[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetchActivitiesByIdUser(user.id_user);
+
+      if (response.status === 200) {
+        setData(response.data.data.filter((item: PendingActivityProps) => item.mst_sts_approval.id_sts_approval === 1));
+      } else {
+        logout();
+      }
+    }
+
+    fetchData();
+  }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
@@ -22,62 +67,36 @@ export default function PendingActivityScreen() {
         <MaterialIcons name="sort" size={24} color="black" style={{ marginVertical: 20, paddingHorizontal: 10 }} />
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.contentContainer}>
-            <View style={{
-              backgroundColor: "#FBCE0D",
-              width: '3%',
-              borderTopLeftRadius: 10,
-              borderBottomLeftRadius: 10,
-            }}
-            ></View>
-            <View style={{ padding: 10, width: "90%" }}>
-              <Text style={styles.titleText}>jumpa di rumah</Text>
-              <Text style={styles.textDesc}>Bpk/Ibu Syahril Gunawan</Text>
-              <Text style={styles.textDesc}>Jenis: Visit</Text>
-              <Text style={styles.date}>31 Januari 2024 10:00 - 12:00</Text>
-              <Text style={styles.textDesc}>Status: <Text style={{ color: "green" }}>Sudah dilakukan</Text></Text>
-              <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-              <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
+          {data.length > 0 ? data.map((item, index) => (
+            <View style={styles.contentContainer} key={index}>
+              <View style={{
+                backgroundColor: "#FBCE0D",
+                width: '3%',
+                borderTopLeftRadius: 10,
+                borderBottomLeftRadius: 10,
+              }}
+              ></View>
+              <View style={{ padding: 10, width: "90%" }}>
+                <Text style={styles.titleText}>{item.deskripsi || "-"}</Text>
+                <Text style={styles.textDesc}>{item.mst_funding.nama || "-"}</Text>
+                <Text style={styles.textDesc}>Jenis: {item.mst_kegiatan.kegiatan || "-"}</Text>
+                <Text style={styles.date}>
+                  {`${formatDate(item.tanggal)} ${item.jam_mulai.split("T")[1].split(":")[0] + ":" + item.jam_mulai.split("T")[1].split(":")[1]} - ${item.jam_selesai.split("T")[1].split(":")[0] + ":" + item.jam_selesai.split("T")[1].split(":")[1]}`}
+                </Text>
+                <Text style={styles.textDesc}>Approval: <Text>{item.mst_sts_approval.sts_approval || "-"}</Text></Text>
+                <Text style={styles.textDesc}>Approve By: {item.mst_funding.sys_user_checker.nama || "-"}</Text>
+              </View>
             </View>
-          </View>
-
-          <View style={styles.contentContainer}>
-            <View style={{
-              backgroundColor: "#FBCE0D",
-              width: '3%',
-              borderTopLeftRadius: 10,
-              borderBottomLeftRadius: 10,
-            }}
-            ></View>
-            <View style={{ padding: 10, width: "90%" }}>
-              <Text style={styles.titleText}>jumpa di rumah</Text>
-              <Text style={styles.textDesc}>Bpk/Ibu Syahril Gunawan</Text>
-              <Text style={styles.textDesc}>Jenis: Visit</Text>
-              <Text style={styles.date}>31 Januari 2024 10:00 - 12:00</Text>
-              <Text style={styles.textDesc}>Status: <Text style={{ color: "green" }}>Sudah dilakukan</Text></Text>
-              <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-              <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
-            </View>
-          </View>
-
-          <View style={styles.contentContainer}>
-            <View style={{
-              backgroundColor: "#FBCE0D",
-              width: '3%',
-              borderTopLeftRadius: 10,
-              borderBottomLeftRadius: 10,
-            }}
-            ></View>
-            <View style={{ padding: 10, width: "90%" }}>
-              <Text style={styles.titleText}>jumpa di rumah</Text>
-              <Text style={styles.textDesc}>Bpk/Ibu Syahril Gunawan</Text>
-              <Text style={styles.textDesc}>Jenis: Visit</Text>
-              <Text style={styles.date}>31 Januari 2024 10:00 - 12:00</Text>
-              <Text style={styles.textDesc}>Status: <Text style={{ color: "green" }}>Sudah dilakukan</Text></Text>
-              <Text style={styles.textDesc}>Approval: <Text style={{ color: "green" }}>approve</Text></Text>
-              <Text style={styles.textDesc}>Approve By: M. Yasir</Text>
-            </View>
-          </View>
+          )) : <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              fontSize: 14,
+              color: "#707070",
+              textAlign: "center",
+              marginTop: 10,
+            }}>
+            Tidak ada data
+          </Text>}
         </ScrollView>
       </View>
     </View>

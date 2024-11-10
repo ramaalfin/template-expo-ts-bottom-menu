@@ -1,11 +1,17 @@
+import { useEffect, useState } from "react";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+// context
+import { useAuth } from "~/context/AuthContext";
+
+// services
+import { fetchActivitiesByIdUser } from "~/services/trx/activity";
+
 // components
 import Topbar from "~/components/TopBar";
-import * as React from 'react';
 import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
 import {
   Table,
@@ -17,16 +23,36 @@ import {
 } from '~/components/ui/table';
 import { Text } from '~/components/ui/text';
 
-const INVOICES = [
-  {
-    segment: 'Retail',
-    target: 'Rp. 100.000.000',
-    realisasi: 'Rp. 10.000.000',
-    pencapaian: '10%',
-  },
-];
+interface PipelineRealisasiProps {
+  mst_sts_approval: {
+    id_sts_approval: number
+  };
+  pencapaian: string;
+  realisasi: string;
+  segment: string;
+  target: string;
+}
 
 export default function PipelineRealisasiScreen() {
+  const { logout, user } = useAuth();
+
+  const [data, setData] = useState<PipelineRealisasiProps[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetchActivitiesByIdUser(user.id_user);
+
+      if (response.status === 200) {
+        // show data and filter id_sts_approval from mst_sts_approval != 1
+        setData(response.data.data.filter((item: PipelineRealisasiProps) => item.mst_sts_approval.id_sts_approval !== 1));
+      } else {
+        logout();
+      }
+    }
+
+    fetchData();
+  }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F48120" }}>
       {/* Header */}
@@ -41,26 +67,26 @@ export default function PipelineRealisasiScreen() {
                 <TableHead style={{ width: wp("24%") }}>
                   <Text style={styles.tableHeadText}>Segment</Text>
                 </TableHead>
-                <TableHead style={{ width: wp("45%") }}>
+                <TableHead style={{ width: wp("44%") }}>
                   <Text style={styles.tableHeadText}>Target/Realisasi (Rb)</Text>
                 </TableHead>
                 <TableHead>
-                  <Text style={styles.tableHeadText}>Pencapian</Text>
+                  <Text style={styles.tableHeadText}>Pencapaian</Text>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {INVOICES.map((invoice, index) => (
+              {data.map((item, index) => (
                 <TableRow key={index} style={{ borderBottomWidth: .5, borderColor: "#707070" }}>
                   <TableCell style={{ width: wp("24%") }}>
-                    <Text>{invoice.segment}</Text>
+                    <Text>{item.segment}</Text>
                   </TableCell>
-                  <TableCell style={{ width: wp("55%") }}>
-                    <Text>Target: {invoice.target}</Text>
-                    <Text>Realisasi: {invoice.realisasi}</Text>
+                  <TableCell style={{ width: wp("54%") }}>
+                    <Text>Target: Rp {item.target ? item.target.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : 0}</Text>
+                    <Text>Realisasi: Rp {item.realisasi ? item.realisasi.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : 0}</Text>
                   </TableCell>
                   <TableCell>
-                    <Text>{invoice.pencapaian}</Text>
+                    <Text>{item.pencapaian}</Text>
                   </TableCell>
                 </TableRow>
               ))}
