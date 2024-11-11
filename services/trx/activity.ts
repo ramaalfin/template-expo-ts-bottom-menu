@@ -50,6 +50,10 @@ export const fetchPemutusByIdUserPemutus = async (idUser: number) => {
   return await axios.get(`/v1/trx/activity/pemutus/${idUser}`);
 };
 
+export const targetRealisasi = async (year: number) => {
+  return await axios.get(`/v1/trx/activity/target-realisasi/${year}`);
+};
+
 export const updateResultActivityById = async ({
   id,
   data,
