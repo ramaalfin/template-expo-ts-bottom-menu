@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { Href, useRouter } from "expo-router";
 
 // storage
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // services
 import { loginUser, refreshTokenUser } from "~/services/auth";
@@ -11,11 +11,7 @@ interface AuthContextType {
     isLoggedIn: boolean;
     isLoading: boolean;
     user: {
-        id_user: number;
-        id_jabatan: number;
-        email: string;
-        nama: string;
-        photo: string;
+        fid: string;
     };
     tokens: {
         access: {
@@ -27,9 +23,9 @@ interface AuthContextType {
             expires: string;
         };
     }
-    login: (email: string, password: string) => Promise<void>;
+    login: (username: string, password: string) => Promise<void>;
     logout: VoidFunction;
-    refreshAccessToken: VoidFunction;
+    // refreshAccessToken: VoidFunction;
     errorMessage: string | null;
 }
 
@@ -41,7 +37,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState({ id_user: 0, id_jabatan: 0, email: '', nama: '', photo: '' });
+    const [user, setUser] = useState({ fid: '' });
     const [tokens, setTokens] = useState({
         access: { token: '', expires: '' },
         refresh: { token: '', expires: '' },
@@ -52,12 +48,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const loadAuthData = async () => {
-            const user = await SecureStore.getItemAsync('user');
-            const tokens = await SecureStore.getItemAsync('tokens');
+            const user = await AsyncStorage.getItem('user');
+            // const tokens = await SecureStore.getItem('tokens');
 
-            if (user && tokens) {
+            if (user) {
                 setUser(JSON.parse(user));
-                setTokens(JSON.parse(tokens));
+                // setTokens(JSON.parse(tokens));
                 setIsLoggedIn(true);
                 router.replace('/(homes)' as Href);
             } else if (isLoggedIn === false) {
@@ -68,21 +64,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loadAuthData();
     }, []);
 
-    const login = async (email: string, password: string) => {
+    const login = async (username: string, password: string) => {
         try {
             setIsLoading(true);
+            const response = await loginUser(username, password);
 
-            const response = await loginUser({ email, password });
+            if (response.status === "00") {
+                const user = response.data;
+                // const token = response.tokens;
 
-            if (response.code === 200) {
-                const user = response.data.user;
-                const token = response.data.tokens;
-
-                await SecureStore.setItemAsync('user', JSON.stringify(user));
-                await SecureStore.setItemAsync('tokens', JSON.stringify(token));
+                await AsyncStorage.setItem('user', JSON.stringify(user));
 
                 setUser(user);
-                setTokens(token);
                 setIsLoggedIn(true);
                 setErrorMessage(null);
 
@@ -98,34 +91,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const refreshAccessToken = async () => {
-        try {
-            const response = await refreshTokenUser({ refreshToken: tokens.refresh.token });
+    // const refreshAccessToken = async () => {
+    //     try {
+    //         const response = await refreshTokenUser({ refreshToken: tokens.refresh.token });
 
-            if (response.code === 200) {
-                await SecureStore.setItemAsync('tokens', JSON.stringify(response.data));
-                setTokens(response.data);
-                setIsLoggedIn(true);
-            } else {
-                logout();
-            }
-        } catch (error) {
-            logout();
-        }
-    };
+    //         if (response.code === 200) {
+    //             await AsyncStorage.setItem('tokens', JSON.stringify(response.data));
+    //             setTokens(response.data);
+    //             setIsLoggedIn(true);
+    //         } else {
+    //             logout();
+    //         }
+    //     } catch (error) {
+    //         logout();
+    //     }
+    // };
 
     const logout = async () => {
         try {
             setIsLoading(true);
 
-            await SecureStore.deleteItemAsync('user');
-            await SecureStore.deleteItemAsync('tokens');
+            await AsyncStorage.removeItem('user');
+            // await AsyncStorage.removeItem('tokens');
 
-            setUser({ id_user: 0, id_jabatan: 0, email: '', nama: '', photo: '' });
-            setTokens({
-                access: { token: '', expires: '' },
-                refresh: { token: '', expires: '' },
-            });
+            setUser({ fid: '' });
+            // setTokens({
+            //     access: { token: '', expires: '' },
+            //     refresh: { token: '', expires: '' },
+            // });
 
             setIsLoggedIn(false);
         } catch (error) {
@@ -144,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             tokens,
             login,
             logout,
-            refreshAccessToken,
+            // refreshAccessToken,
             isLoading,
             errorMessage,
         }}>

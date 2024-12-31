@@ -1,252 +1,173 @@
-import React, { useState } from "react";
-import { useForm, Controller } from 'react-hook-form';
-
 import {
-    widthPercentageToDP as wp,
-    heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
-
-import { useAuth } from "~/context/AuthContext";
-
-// icons
-import { Feather } from "@expo/vector-icons";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-
-// components
-import { Input } from "~/components/ui/input";
-import {
-    Image,
     StyleSheet,
     Text,
     View,
-    Pressable,
-    KeyboardAvoidingView,
+    Platform,
     TouchableOpacity,
     ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
+import React, { useState } from "react";
 
-type LoginProps = {
-    email: string;
+import { useForm, Controller } from "react-hook-form";
+
+// components
+import { useAuth } from "~/context/AuthContext";
+import ModalInfo from "~/components/ModalInfo";
+import InputBox from "~/components/InputBox";
+import InputPassword from "~/components/InputPassword";
+
+// types
+interface Login {
+    username: string;
     password: string;
-};
+}
 
-export default function Login() {
-    const { control, handleSubmit, formState: { errors } } = useForm<LoginProps>();
+const LoginScreen = () => {
+    const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
-    const { errorMessage, login, isLoading } = useAuth();
-    const navigation = useRouter();
+    const [modalMessage, setModalMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const { control, handleSubmit, formState: { errors }, getValues } = useForm<Login>();
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
+    const onSubmit = async (data: Login) => {
+        try {
+            setLoading(true);
 
-    const submit = async ({ email, password }: LoginProps) => {
-        await login(email, password);
+            await login(data.username, data.password);
+        } catch (error) {
+            setLoading(false);
+            setModalMessage("Terjadi kesalahan, silahkan coba lagi");
+            setModalVisible(true);
+        }
     };
 
     return (
-        <View style={styles.container}>
-            <Image
-                resizeMode="contain"
-                source={require("~/assets/images/Vector_right_top.png")}
+        <View style={Platform.OS === "web" ? styles.webContainer : styles.container}>
+            <Text
                 style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    width: wp("60%"),
-                    height: hp("20%"),
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 18,
+                    marginBottom: 20,
                 }}
-            />
-
-            <Image
-                resizeMode="contain"
-                source={require("~/assets/images/Vector_left_top.png")}
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: wp("52%"),
-                    height: hp("29.2%"),
-                }}
-            />
-
-            <KeyboardAvoidingView
-                style={styles.formContainer}
-                behavior="height"
             >
+                Islamic School
+            </Text>
+
+            <View style={styles.formContainer}>
                 <View>
-                    <Image
-                        style={styles.logo}
-                        resizeMode="contain"
-                        source={require("~/assets/icon/icon_login.png")}
+                    <Controller
+                        control={control}
+                        rules={{ required: "Username tidak boleh kosong" }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                            <InputBox
+                                inputTitle="Username"
+                                value={value}
+                                setValue={onChange}
+                                onBlur={onBlur}
+                                style={{
+                                    backgroundColor: "#f1f9fe",
+                                    borderColor: "#f1f9fe",
+                                }}
+                            />
+                        )}
+                        name="username"
                     />
-                    <Text style={styles.logoText}>Funding App of Super Team</Text>
+
+                    {errors.username && <Text style={{ color: "red" }}>{errors.username.message}</Text>}
                 </View>
 
-                <View
-                    style={{
-                        padding: 20,
-                        borderRadius: 15,
-                    }}
-                >
-                    <View style={{ marginBottom: 15 }}>
-                        <Controller
-                            control={control}
-                            name="email"
-                            rules={{
-                                required: "Email wajib diisi",
-                                validate: (value) => value.includes("@") || "Email tidak valid"
-                            }}
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={{ position: "relative" }}>
-                                    <MaterialIcons name="email" size={20} color="#F48120" style={styles.iconInput} />
-                                    <Input
-                                        placeholder="Email"
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        style={styles.input}
-                                        inputMode="email"
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.email && (
-                            <Text style={{ color: "red", fontSize: 12 }}>
-                                {errors.email.message}
-                            </Text>
+                <View>
+                    <Controller
+                        control={control}
+                        rules={{ required: "Password tidak boleh kosong" }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                            <InputPassword
+                                labelPassword="Password"
+                                togglePasswordVisibility={() => setShowPassword(!showPassword)}
+                                value={value}
+                                setValue={onChange}
+                                onBlur={onBlur}
+                                style={{
+                                    backgroundColor: "#f1f9fe",
+                                    borderColor: "#f1f9fe",
+                                }}
+                                showPassword={showPassword}
+                            />
                         )}
-                    </View>
+                        name="password"
+                    />
 
-                    <View>
-                        <Controller
-                            control={control}
-                            name="password"
-                            rules={{ required: "Password wajib diisi" }}
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={{ position: "relative" }}>
-                                    <MaterialIcons name="lock-outline" size={20} color="#F48120" style={styles.iconInput} />
-                                    <View style={styles.password}>
-                                        <Input
-                                            placeholder="Password"
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            style={styles.input}
-                                            secureTextEntry={!showPassword}
-                                        />
+                    {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
+                </View>
 
-                                        <View style={{ position: "absolute", right: 10, top: 10 }}>
-                                            {showPassword ? (
-                                                <Feather
-                                                    name="eye"
-                                                    size={20}
-                                                    color="#707070"
-                                                    onPress={togglePasswordVisibility}
-                                                />
-                                            ) : (
-                                                <Feather
-                                                    name="eye-off"
-                                                    size={20}
-                                                    color="#707070"
-                                                    onPress={togglePasswordVisibility}
-                                                />
-                                            )}
-                                        </View>
-                                    </View>
-                                </View>
-                            )}
-                        />
-                        {errors.password && (
-                            <Text style={{ color: "red", fontSize: 12 }}>
-                                {errors.password.message}
-                            </Text>
-                        )}
-                    </View>
-
-                    {errorMessage && (
-                        <Text style={{ color: 'red', marginTop: 10 }}>
-                            {errorMessage}
-                        </Text>
-                    )}
-
+                {/* submit */}
+                <View style={{ marginTop: 50 }}>
                     <TouchableOpacity
-                        onPress={handleSubmit(submit)}
-                        style={styles.btnLogin}
-                        disabled={isLoading}
+                        style={Platform.OS === "web" ? styles.webBtnSubmit : styles.btnSubmit}
+                        onPress={handleSubmit(onSubmit)}
                     >
-                        {isLoading ? (
-                            <ActivityIndicator color="white" size={20} />
-                        ) : (
-                            <Text style={{ color: "white", fontFamily: "Inter_500Medium" }}>Masuk</Text>
-                        )}
+                        <Text style={styles.btnTextSubmit}>
+                            {
+                                loading ?
+                                    <ActivityIndicator size="small" color="#fff" />
+                                    :
+                                    "Masuk"
+                            }
+                        </Text>
                     </TouchableOpacity>
                 </View>
+            </View>
 
-                <Image
-                    resizeMode="cover"
-                    source={require("~/assets/images/Vector.png")}
-                    style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        width: wp("100%"),
-                        height: hp("5%"),
-                    }}
-                />
-            </KeyboardAvoidingView>
+            <ModalInfo
+                message={modalMessage}
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                setLoading={setLoading}
+            />
         </View>
     );
-}
+};
+
+export default LoginScreen;
 
 const styles = StyleSheet.create({
+    webContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        alignSelf: "center",
+        backgroundColor: "#fff",
+        width: "100%",
+        maxWidth: 400,
+    },
     container: {
         flex: 1,
-    },
-    logo: {
-        width: 112,
-        height: 112,
-        alignSelf: "center",
-        marginBottom: 20,
-    },
-    logoText: {
-        fontFamily: "Inter_600SemiBold",
-        fontSize: 14,
-        textAlign: "center",
-        color: "#195883",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
     },
     formContainer: {
-        flex: 1,
-        alignItems: "center",
-        paddingHorizontal: 20,
-        marginTop: hp("18%"),
+        width: "100%",
+        marginTop: 20,
+        paddingHorizontal: 30,
+        gap: 20,
     },
-    input: {
-        height: 42,
-        width: wp("80%"),
-        paddingLeft: 40,
-        borderColor: "#979797",
-        fontSize: 13,
-        fontFamily: "Inter_400Regular",
-    },
-    password: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-    },
-    iconInput: {
-        position: "absolute",
-        top: 10,
-        left: 10
-    },
-    btnLogin: {
-        backgroundColor: "#FFA451",
+
+    webBtnSubmit: {
+        backgroundColor: "#125694",
         padding: 10,
-        borderRadius: 10,
-        alignItems: "center",
-        justifyContent: "center",
-        marginVertical: 20,
+        height: 40,
+        borderRadius: 30
+    },
+    btnSubmit: {
+        backgroundColor: "#125694",
+        padding: 15,
+        borderRadius: 30
+    },
+    btnTextSubmit: {
+        color: "#fff",
+        textAlign: "center",
+        fontFamily: "Inter_400Regular"
     }
 });

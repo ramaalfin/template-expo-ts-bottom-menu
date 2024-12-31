@@ -1,41 +1,27 @@
 import { Tabs } from "expo-router";
 
-import { useAuth } from "~/context/AuthContext";
-
 // components
 import TabBar from "~/components/TabBar";
 
 // icons
-import { HomeIconActive } from "~/assets/menu/HomeIconActive";
-import { HomeIconInactive } from "~/assets/menu/HomeIconInactive";
-import { AkunIconInactive } from "~/assets/menu/AkunIconInactive";
-import { AkunIconActive } from "~/assets/menu/AkunIconActive";
-import { AktivitasIconActive } from "~/assets/menu/AktivitasIconActive";
-import { AktivitasIconInactive } from "~/assets/menu/AktivitasIconInactive";
-import { PipelineIconActive } from "~/assets/menu/PipelineIconActive";
-import { PipelineIconInactive } from "~/assets/menu/PipelineIconInactive";
-import { SpecialRateIconActive } from "~/assets/menu/SpecialRateIconActive";
-import { SpecialRateIconInactive } from "~/assets/menu/SpecialRateIconInactive";
-import { ApprovalIconActive } from "~/assets/menu/ApprovalIconActive";
-import { ApprovalIconInactive } from "~/assets/menu/ApprovalIconInactive";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 export default function TabLayout() {
-  const { user } = useAuth();
-
   return (
-    <Tabs tabBar={(props) => <TabBar {...props} />}>
+    <Tabs tabBar={(props: any) => <TabBar {...props} />}>
       <Tabs.Screen
         name="(homes)"
         options={{
           title: "Home",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <HomeIconActive width={27} height={30} />
+              <Ionicons name="home-sharp" size={24} color="black" />
             ) : (
-              <HomeIconInactive width={27} height={30} />
+              <Ionicons name="home-outline" size={24} color="black" />
             ),
           headerShown: false,
-          tabBarStyle: { marginLeft: -2 },
         }}
       />
       <Tabs.Screen
@@ -44,16 +30,10 @@ export default function TabLayout() {
           title: "Pipeline",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <PipelineIconActive width={35} height={27} />
+              <FontAwesome5 name="user-alt" size={24} color="black" />
             ) : (
-              <PipelineIconInactive width={35} height={27} />
+              <FontAwesome5 name="user" size={24} color="black" />
             ),
-          tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? -25 : -30
-          },
-          tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? -25 : -30
-          },
           headerShown: false,
         }}
       />
@@ -63,91 +43,13 @@ export default function TabLayout() {
           title: "Special Rate",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <SpecialRateIconActive width={35} height={27} />
+              <MaterialCommunityIcons name="contacts" size={24} color="black" />
             ) : (
-              <SpecialRateIconInactive width={35} height={27} />
+              <MaterialCommunityIcons name="contacts-outline" size={24} color="black" />
             ),
           headerShown: false,
           tabBarStyle: {
-            display: user.id_jabatan === 8 ? "flex" : "none",
-            marginLeft: user.id_jabatan === 8 ? -10 : 0,
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="(activities)"
-        options={{
-          title: "Aktivitas",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <AktivitasIconActive width={35} height={28} />
-            ) : (
-              <AktivitasIconInactive width={35} height={28} />
-            ),
-          tabBarIconStyle: {
-            marginRight: user.id_jabatan === 8 ? -10 : 0,
-            marginLeft: user.id_jabatan !== 8 ? -45 : 0
-          },
-          tabBarLabelStyle: {
-            marginRight: user.id_jabatan === 8 ? -10 : 0,
-            marginLeft: user.id_jabatan !== 8 ? -45 : 0
-          },
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="(approval)"
-        options={{
-          title: "Approval",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <ApprovalIconActive width={32} height={32} />
-            ) : (
-              <ApprovalIconInactive width={28} height={28} />
-            ),
-          headerShown: false,
-          tabBarStyle: {
-            display: user.id_jabatan !== 8 ? "flex" : "none",
-          },
-          tabBarIconStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -55
-          },
-          tabBarLabelStyle: {
-            marginLeft: user.id_jabatan === 8 ? 0 : -55
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="(special-rate-pemutus)"
-        options={{
-          title: "Special Rate",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <SpecialRateIconActive width={35} height={27} />
-            ) : (
-              <SpecialRateIconInactive width={35} height={27} />
-            ),
-          headerShown: false,
-          tabBarStyle: {
-            display: user.id_jabatan !== 8 ? "flex" : "none",
-            marginLeft: -25,
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="(accounts)"
-        options={{
-          title: "Profil",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <AkunIconActive width={28} height={28} />
-            ) : (
-              <AkunIconInactive width={28} height={28} />
-            ),
-          headerShown: false,
-          tabBarStyle: {
-            marginLeft: -8,
-            marginRight: -2
+            display: "flex",
           },
         }}
       />

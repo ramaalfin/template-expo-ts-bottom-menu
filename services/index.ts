@@ -1,5 +1,5 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const axiosInstance = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -10,7 +10,7 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const tokens = await SecureStore.getItemAsync("tokens");
+    const tokens = await AsyncStorage.getItem("tokens");
     if (tokens) {
       const tokenParse = JSON.parse(tokens);
       if (tokenParse.access.token) {
@@ -28,8 +28,8 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      SecureStore.deleteItemAsync("user");
-      SecureStore.deleteItemAsync("tokens");
+      AsyncStorage.removeItem("user");
+      AsyncStorage.removeItem("tokens");
     }
 
     return Promise.reject(error);

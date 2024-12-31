@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // context
 import { AuthProvider } from "~/context/AuthContext";
-import { IdleProvider } from "~/context/IdleContext";
+// import { IdleProvider } from "~/context/IdleContext";
 
 // fonts
 import {
@@ -34,12 +34,10 @@ export default function Root() {
 
   return (
     <AuthProvider>
-      <IdleProvider>
-        <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar backgroundColor="transparent" barStyle="dark-content" />
-          <Slot />
-        </SafeAreaView>
-      </IdleProvider>
+      <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar backgroundColor="transparent" barStyle="dark-content" />
+        <Slot />
+      </SafeAreaView>
     </AuthProvider>
   );
 }

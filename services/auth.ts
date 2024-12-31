@@ -2,7 +2,7 @@ import axios from "axios";
 import axiosWithAuth from "./index";
 
 interface LoginProps {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -15,19 +15,17 @@ interface ChangePasswordProps {
   newPassword: string;
 }
 
-export const loginUser = async ({ email, password }: LoginProps) => {
+export const loginUser = async (username: string, password: string) => {
+  const data = {
+    username: username,
+    password: password,
+    id_jns_mobile: 4,
+  };
+
   try {
     const response = await axios.post(
-      `${process.env.EXPO_PUBLIC_API_URL}/v1/auth/login`,
-      {
-        email,
-        password,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `${process.env.EXPO_PUBLIC_API_URL}/auth/login`,
+      data
     );
 
     return response.data;

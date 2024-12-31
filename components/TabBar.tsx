@@ -1,9 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
-import { useAuth } from "~/context/AuthContext";
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from "react-native";
 
 const TabBar = ({ state, descriptors, navigation }: any) => {
   return (
@@ -53,8 +48,6 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
           });
         };
 
-        const { user } = useAuth();
-
         return (
           <TouchableOpacity
             key={index}
@@ -74,10 +67,10 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
 
             <Text
               style={{
-                color: isFocused ? "#F48120" : "#707070",
+                color: isFocused ? "#000" : "#999",
                 marginTop: 5,
-                fontSize: user.id_jabatan === 8 ? 12 : 11,
-                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                fontFamily: "Inter_500Medium",
                 ...options.tabBarLabelStyle,
               }}
             >
@@ -88,11 +81,11 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
               <View
                 style={{
                   height: 5,
-                  width: user.id_jabatan === 8 ? wp("15%") : wp("13%"),
-                  backgroundColor: "#F48120",
+                  width: Dimensions.get("window").width / 4,
+                  backgroundColor: "#fff",
                   borderRadius: 10,
                   marginTop: 5,
-                  shadowColor: "#F48120",
+                  shadowColor: "#fff",
                   shadowOffset: { width: 0, height: 8 },
                   shadowOpacity: 0.4,
                   shadowRadius: 10,
@@ -112,12 +105,14 @@ export default TabBar;
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: hp("9%"),
+    width: Platform.OS === "web" ? 400 : "100%",
+    height: Dimensions.get("window").height > 800 ? 70 : 60,
     flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
     paddingTop: 6,
     backgroundColor: "#fff",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
     shadowRadius: 10,
     shadowOpacity: 0.1,
     shadowColor: "#000",
